@@ -8,5 +8,10 @@ repositories {
 dependencies {
     
     testImplementation 'junit:junit:4.12'
+    
+    // JDBC MySQL
+    compile group: 'mysql', name: 'mysql-connector-java', version: '6.0.6'
+    
+    compile group: 'org.openjdk.jmh', name: 'jmh-core', version: '1.19'
+    
 }
-

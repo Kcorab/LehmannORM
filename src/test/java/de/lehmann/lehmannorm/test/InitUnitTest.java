@@ -1,8 +1,18 @@
 package de.lehmann.lehmannorm.test;
 
-import org.junit.Test;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
-import de.lehmann.lehmannorm.examples.entities.ExampleEntity;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 /**
  *
@@ -10,12 +20,82 @@ import de.lehmann.lehmannorm.examples.entities.ExampleEntity;
  */
 public class InitUnitTest {
 
+    private final String user       = "root";
+    private final String password   = "+";
+    private final String dbName     = "SYNTHETIC_HEART";
+    private final String dbms       = "mysql";
+    private final String serverName = "localhost";
+    private final String portNumber = "3306";
+
+    private final String select = "SELECT `NUMBER` FROM `TEST_TABLE`;";
+
+    private Connection connection = null;
+
+    @BeforeClass
+    public static void initDriver() throws ClassNotFoundException {
+
+    }
+
+    private Connection getConnection() throws SQLException {
+
+        Connection conn = null;
+        final Properties connectionProps = new Properties();
+        connectionProps.put("user", user);
+        connectionProps.put("password", password);
+
+        if (dbms.equals("mysql"))
+            conn = DriverManager.getConnection("jdbc:" + dbms + "://" + serverName + ":" + portNumber + "/" + dbName
+                    + "?useLegacyDatetimeCode=false&serverTimezone=UTC", connectionProps);
+
+        System.out.println("Connected to database");
+        return conn;
+    }
+
+    @Before
+    public void init() throws SQLException {
+
+        connection = getConnection();
+
+    }
+
     @Test
-    public void helloWorld() {
+    public List<Integer> helloWorld() {
 
-        System.out.println("LehmannORM");
+        final List<Integer> values = new ArrayList<>();
 
-        final ExampleEntity exampleEntity = new ExampleEntity();
-        exampleEntity.setColumnValue(ExampleEntity.DESCRIPTION, "Eine Beschreibung.");
+        ResultSet resultSet = null;
+
+        try {
+            resultSet = connection.createStatement().executeQuery(select);
+        } catch (final SQLException e) {
+            Assert.fail();
+        }
+
+        if (resultSet != null)
+            try {
+                while (resultSet.next())
+                    values.add(resultSet.getObject(1, Integer.class));
+            } catch (final SQLException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    resultSet.close();
+                } catch (final SQLException e) {
+                    e.printStackTrace();
+                } finally {
+                    resultSet = null;
+                }
+            }
+
+        return values;
+
+    }
+
+    @After
+    public void finish() throws SQLException {
+
+        if (connection != null && !connection.isClosed())
+            connection.close();
+
     }
 }

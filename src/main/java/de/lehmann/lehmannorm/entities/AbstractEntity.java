@@ -3,13 +3,11 @@ package de.lehmann.lehmannorm.entities;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import de.lehmann.lehmannorm.exceptions.EntityInitException;
-
 public abstract class AbstractEntity<PRIMATY_KEY> {
 
     private final IEntityColumnInfo<PRIMATY_KEY> primaryKey;
 
-    private final Map<EntityColumn<?>, ?> columns;
+    private final Map<EntityColumn<?>, Object> columns = new LinkedHashMap<>();
 
     protected AbstractEntity(final Class<PRIMATY_KEY> primaryKeyColumnType, final EntityColumn<?>... entityColumns) {
         this(new EntityColumn<>("ID", primaryKeyColumnType), entityColumns);
@@ -45,16 +43,13 @@ public abstract class AbstractEntity<PRIMATY_KEY> {
             }
         };
 
-        columns = new LinkedHashMap<>();
-        initColumns(entityColumn);
+        initColumns(entityColumns);
     }
 
     private void initColumns(final EntityColumn<?>... entityColumns) {
 
         for (final EntityColumn<?> entityColumn : entityColumns)
-            if (columns.put(entityColumn, null) == null)
-                throw new EntityInitException(String.format("Couldn't init column with name \"%s\" of type \"%s\".",
-                        entityColumn.columnName, entityColumn.columnType));
+            columns.put(entityColumn, null);
     }
 
     public <T> T getColumnValue(final EntityColumn<T> entityColumn) {
@@ -64,7 +59,21 @@ public abstract class AbstractEntity<PRIMATY_KEY> {
 
     public <T> boolean setColumnValue(final EntityColumn<T> entityColumn, final T value) {
 
-        return true;
+        final boolean success = this.columns.containsKey(entityColumn);
+
+        if (success)
+            this.columns.put(entityColumn, value);
+
+        return success;
+    }
+
+    public Map<EntityColumn<?>, ?> getAllColumns() {
+
+        return this.columns;
+    }
+
+    public EntityColumn<PRIMATY_KEY> getPrimaryKeyColumn() {
+        return primaryKey.getFst();
     }
 
     public PRIMATY_KEY getPrimaryKeyValue() {

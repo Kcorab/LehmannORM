@@ -9,6 +9,9 @@ public class EntityColumn<T> {
 
     public EntityColumn(final String columnName, final Class<T> columnType) {
         super();
+        if (columnType == null || "".equals(columnName))
+            throw new IllegalArgumentException("The constructors parameter haven't to be null or empty!");
+
         this.columnName = columnName;
         this.columnType = columnType;
     }
