@@ -1,13 +1,19 @@
-package de.lehmann.lehmannorm.entities;
+package de.lehmann.lehmannorm.entity.column;
 
 import java.util.Objects;
 
-public class EntityColumn<T> {
+/**
+ * @author Tim Lehmann
+ *
+ * @param <EC>
+ *            type of entity column
+ */
+public class EntityColumn<EC> {
 
-    public final String   columnName;
-    public final Class<T> columnType;
+    public final String    columnName;
+    public final Class<EC> columnType;
 
-    public EntityColumn(final String columnName, final Class<T> columnType) {
+    public EntityColumn(final String columnName, final Class<EC> columnType) {
         super();
         if (columnType == null || "".equals(columnName))
             throw new IllegalArgumentException("The constructors parameter haven't to be null or empty!");

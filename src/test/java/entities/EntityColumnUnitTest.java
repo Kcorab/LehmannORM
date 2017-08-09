@@ -7,7 +7,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.lehmann.lehmannorm.entities.EntityColumn;
+import de.lehmann.lehmannorm.entity.column.EntityColumn;
 
 public class EntityColumnUnitTest {
 

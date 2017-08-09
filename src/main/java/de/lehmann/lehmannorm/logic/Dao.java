@@ -1,38 +1,34 @@
 package de.lehmann.lehmannorm.logic;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.Map;
+import java.util.Map.Entry;
 
-import de.lehmann.lehmannorm.entities.AbstractEntity;
-import de.lehmann.lehmannorm.entities.EntityColumn;
+import de.lehmann.lehmannorm.entity.AbstractEntity;
+import de.lehmann.lehmannorm.entity.column.EntityColumn;
+
+import java.util.Set;
 
 public class Dao<ENTITY extends AbstractEntity<PRIMARY_KEY>, PRIMARY_KEY> {
 
     public static <ENTITY extends AbstractEntity<PRIMARY_KEY>, PRIMARY_KEY> Dao<ENTITY, PRIMARY_KEY> createInstance(
-            final Connection connection, final Class<ENTITY> entityType) {
+            final Connection connection, final Class<ENTITY> entityType)
+            throws SQLException, InstantiationException, IllegalAccessException {
 
-        try {
-            return new Dao<>(connection, entityType);
-        } catch (final InstantiationException e) {
-
-            e.printStackTrace();
-        } catch (final IllegalAccessException e) {
-
-            e.printStackTrace();
-        }
-
-        return null;
+        return new Dao<>(connection, entityType);
     }
 
     // table name, STMNT_CREATE_COLUMNBASE
 
     private final Connection connection;
 
-    private final String insertQuery;
-    private final String selectQuery;
+    private final PreparedStatement insertStatement;
+    private final PreparedStatement selectStatement;
 
-    private Dao(final Connection connection, final ENTITY entity) {
+    private Dao(final Connection connection, final ENTITY entity) throws SQLException {
 
         this.connection = connection;
 
@@ -61,7 +57,7 @@ public class Dao<ENTITY extends AbstractEntity<PRIMARY_KEY>, PRIMARY_KEY> {
 
         insertQueryBuilder.append(");");
 
-        insertQuery = insertQueryBuilder.toString();
+        insertStatement = connection.prepareStatement(insertQueryBuilder.toString());
 
         // Build string that respresented an get query.
 
@@ -70,17 +66,38 @@ public class Dao<ENTITY extends AbstractEntity<PRIMARY_KEY>, PRIMARY_KEY> {
                 .append(entity.getTableName()).append(" WHERE ").append(entity.getPrimaryKeyColumn().columnName)
                 .append(" == ?;");
 
-        selectQuery = selectQueryBuilder.toString();
+        selectStatement = connection.prepareStatement(selectQueryBuilder.toString());
 
     }
 
     private Dao(final Connection connection, final Class<ENTITY> entityType)
-            throws InstantiationException, IllegalAccessException {
+            throws InstantiationException, IllegalAccessException, SQLException {
 
         this(connection, entityType.newInstance());
     }
 
     public boolean insert(final ENTITY entity) {
+
+        final Map<EntityColumn<?>, Object> map = entity.getAllColumns();
+
+        final Set<Entry<EntityColumn<?>, Object>> entrySet = map.entrySet();
+
+        int i = 0;
+        try {
+            for (final Object element : entrySet)
+                insertStatement.setObject(i++, element);
+        } catch (final SQLException e) {
+
+            e.printStackTrace();
+        }
+
+        try {
+            final int id = insertStatement.executeUpdate();
+
+        } catch (final SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
         return false;
     }
