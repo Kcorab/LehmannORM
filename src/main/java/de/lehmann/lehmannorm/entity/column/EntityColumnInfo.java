@@ -29,6 +29,7 @@ public class EntityColumnInfo<ECV> implements IEntityColumnInfo<ECV> {
 
     @Override
     public void setEntityColumnValue(final ECV entityColumnValue) {
+
         this.entityColumnValue = entityColumnValue;
     }
 }

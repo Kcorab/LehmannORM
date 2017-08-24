@@ -2,35 +2,29 @@ package de.lehmann.lehmannorm.logic;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import de.lehmann.lehmannorm.entity.AbstractEntity;
 import de.lehmann.lehmannorm.entity.column.EntityColumn;
-
-import java.util.Set;
 
 public class Dao<ENTITY extends AbstractEntity<PRIMARY_KEY>, PRIMARY_KEY> {
 
     public static <ENTITY extends AbstractEntity<PRIMARY_KEY>, PRIMARY_KEY> Dao<ENTITY, PRIMARY_KEY> createInstance(
             final Connection connection, final Class<ENTITY> entityType)
             throws SQLException, InstantiationException, IllegalAccessException {
-
         return new Dao<>(connection, entityType);
     }
-
-    // table name, STMNT_CREATE_COLUMNBASE
-
-    private final Connection connection;
 
     private final PreparedStatement insertStatement;
     private final PreparedStatement selectStatement;
 
     private Dao(final Connection connection, final ENTITY entity) throws SQLException {
-
-        this.connection = connection;
 
         final Set<EntityColumn<?>> entityColumns = entity.getAllColumns().keySet();
         final int columnCount = entityColumns.size() + 1; // plus one for primary key;
@@ -57,14 +51,14 @@ public class Dao<ENTITY extends AbstractEntity<PRIMARY_KEY>, PRIMARY_KEY> {
 
         insertQueryBuilder.append(");");
 
-        insertStatement = connection.prepareStatement(insertQueryBuilder.toString());
+        insertStatement = connection.prepareStatement(insertQueryBuilder.toString(), Statement.RETURN_GENERATED_KEYS);
 
         // Build string that respresented an get query.
 
         final StringBuilder selectQueryBuilder;
         selectQueryBuilder = new StringBuilder("SELECT ").append(columnNames).append(" FROM ")
                 .append(entity.getTableName()).append(" WHERE ").append(entity.getPrimaryKeyColumn().columnName)
-                .append(" == ?;");
+                .append(" = ?;");
 
         selectStatement = connection.prepareStatement(selectQueryBuilder.toString());
 
@@ -78,32 +72,64 @@ public class Dao<ENTITY extends AbstractEntity<PRIMARY_KEY>, PRIMARY_KEY> {
 
     public boolean insert(final ENTITY entity) {
 
+        boolean wasSuccess = false;
+
         final Map<EntityColumn<?>, Object> map = entity.getAllColumns();
 
         final Set<Entry<EntityColumn<?>, Object>> entrySet = map.entrySet();
 
-        int i = 0;
+        int i = 1;
         try {
-            for (final Object element : entrySet)
-                insertStatement.setObject(i++, element);
+            insertStatement.setObject(1, entity.getPrimaryKeyValue());
+            for (final Entry<EntityColumn<?>, Object> entry : entrySet)
+                insertStatement.setObject(++i, entry.getValue());
         } catch (final SQLException e) {
 
             e.printStackTrace();
         }
 
         try {
-            final int id = insertStatement.executeUpdate();
+            insertStatement.executeUpdate();
+            final ResultSet generatedKeys = insertStatement.getGeneratedKeys();
 
+            if (generatedKeys != null && generatedKeys.next()) {
+
+                final PRIMARY_KEY primaryKey = generatedKeys.getObject(1, entity.getPrimaryKeyColumn().columnType);
+                entity.setPrimaryKeyValue(primaryKey);
+
+                wasSuccess = true;
+            }
         } catch (final SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
 
-        return false;
+        return wasSuccess;
     }
 
-    public ENTITY getById(final PRIMARY_KEY primary_KEY) {
+    public boolean getEntityByPk(final ENTITY entity) {
 
-        return null;
+        boolean wasSuccess = false;
+
+        try {
+            selectStatement.setObject(1, entity.getPrimaryKeyValue());
+            final ResultSet resultSet = selectStatement.executeQuery();
+
+            if (resultSet != null && resultSet.next()) {
+
+                final Set<Entry<EntityColumn<?>, Object>> entrySet = entity.getAllColumns().entrySet();
+
+                int i = 1; // primary key already set; jump over
+                for (final Entry<EntityColumn<?>, Object> entry : entrySet) {
+
+                    final Object object = resultSet.getObject(++i, entry.getKey().columnType);
+                    entry.setValue(object);
+                }
+
+                wasSuccess = true;
+            }
+
+        } catch (final SQLException e) {
+        }
+
+        return wasSuccess;
     }
 }

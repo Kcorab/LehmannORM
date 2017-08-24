@@ -12,5 +12,5 @@ public interface IEntityColumnInfo<ECV> {
 
     public ECV getEntityColumnValue();
 
-    public void setEntityColumnValue(final ECV entityColumnValue);
+    public void setEntityColumnValue(ECV entityColumnValue);
 }

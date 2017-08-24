@@ -2,6 +2,8 @@ package de.lehmann.lehmannorm.entity;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import de.lehmann.lehmannorm.entity.column.EntityColumn;
 import de.lehmann.lehmannorm.entity.column.EntityColumnInfo;
@@ -47,7 +49,20 @@ public abstract class AbstractEntity<PK> {
         initColumns(entityColumns);
     }
 
-    // Constructor Methods
+    // copy constructor
+
+    public AbstractEntity(final EntityColumn<PK> entityColumn, final PK primaryKeyColumnValue,
+            final AbstractEntity<?> sourceEntity) {
+
+        primaryKey = new EntityColumnInfo<>(entityColumn, primaryKeyColumnValue);
+
+        final Set<Entry<EntityColumn<?>, Object>> entrySet = sourceEntity.entityColumnsWithValue.entrySet();
+
+        for (final Map.Entry<EntityColumn<?>, Object> element : entrySet)
+            this.entityColumnsWithValue.put(element.getKey(), null);
+    }
+
+    // constructor methods
 
     private void initColumns(final EntityColumn<?>... entityColumns) {
 
@@ -93,7 +108,7 @@ public abstract class AbstractEntity<PK> {
     }
 
     public void setPrimaryKeyValue(final PK primaryKeyValue) {
-        this.primaryKey.setEntityColumnValue(primaryKeyValue);
+        primaryKey.setEntityColumnValue(primaryKeyValue);
     }
 
     public abstract String getTableName();
