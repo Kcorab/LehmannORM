@@ -2,12 +2,8 @@ package de.lehmann.lehmannorm.entity;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import de.lehmann.lehmannorm.entity.column.EntityColumn;
-import de.lehmann.lehmannorm.entity.column.EntityColumnInfo;
-import de.lehmann.lehmannorm.entity.column.IEntityColumnInfo;
 
 /**
  * @author Tim Lehmann
@@ -17,9 +13,8 @@ import de.lehmann.lehmannorm.entity.column.IEntityColumnInfo;
  */
 public abstract class AbstractEntity<PK> {
 
-    private final IEntityColumnInfo<PK> primaryKey;
-
-    private final Map<EntityColumn<?>, Object> entityColumnsWithValue = new LinkedHashMap<>();
+    private final EntityColumn<PK>             primaryKeyColumn;
+    private final Map<EntityColumn<?>, Object> entityColumnsWithValue;
 
     // Constructors
 
@@ -44,22 +39,25 @@ public abstract class AbstractEntity<PK> {
     protected AbstractEntity(final EntityColumn<PK> entityColumn, final PK primaryKeyColumnValue,
             final EntityColumn<?>... entityColumns) {
 
-        primaryKey = new EntityColumnInfo<>(entityColumn, primaryKeyColumnValue);
+        this.primaryKeyColumn = entityColumn;
+        this.entityColumnsWithValue = new LinkedHashMap<>(1 + entityColumns.length);
+
+        entityColumnsWithValue.put(entityColumn, primaryKeyColumnValue);
 
         initColumns(entityColumns);
     }
 
     // copy constructor
 
-    public AbstractEntity(final EntityColumn<PK> entityColumn, final PK primaryKeyColumnValue,
-            final AbstractEntity<?> sourceEntity) {
+    public AbstractEntity(final AbstractEntity<PK> sourceEntity) {
 
-        primaryKey = new EntityColumnInfo<>(entityColumn, primaryKeyColumnValue);
+        this.primaryKeyColumn = sourceEntity.primaryKeyColumn;
+        this.entityColumnsWithValue = new LinkedHashMap<>(sourceEntity.entityColumnsWithValue.size());
 
-        final Set<Entry<EntityColumn<?>, Object>> entrySet = sourceEntity.entityColumnsWithValue.entrySet();
-
-        for (final Map.Entry<EntityColumn<?>, Object> element : entrySet)
-            this.entityColumnsWithValue.put(element.getKey(), null);
+        // copy all immutable values of type EntityColumn to this entryset.
+        sourceEntity.entityColumnsWithValue.forEach((k, v) -> {
+            this.entityColumnsWithValue.put(k, null);
+        });
     }
 
     // constructor methods
@@ -100,15 +98,16 @@ public abstract class AbstractEntity<PK> {
     }
 
     public EntityColumn<PK> getPrimaryKeyColumn() {
-        return primaryKey.getEntityColumn();
+
+        return primaryKeyColumn;
     }
 
     public PK getPrimaryKeyValue() {
-        return primaryKey.getEntityColumnValue();
+        return this.primaryKeyColumn.columnType.cast(entityColumnsWithValue.get(primaryKeyColumn));
     }
 
     public void setPrimaryKeyValue(final PK primaryKeyValue) {
-        primaryKey.setEntityColumnValue(primaryKeyValue);
+        this.entityColumnsWithValue.put(primaryKeyColumn, primaryKeyValue);
     }
 
     public abstract String getTableName();

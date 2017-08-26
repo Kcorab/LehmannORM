@@ -132,4 +132,18 @@ public class Dao<ENTITY extends AbstractEntity<PRIMARY_KEY>, PRIMARY_KEY> {
 
         return wasSuccess;
     }
+
+    public static boolean insert(final AbstractEntity entity, final Connection connection) {
+
+        final boolean wasSuccess = false;
+
+        final StringBuilder insertQueryBuilder;
+        insertQueryBuilder = new StringBuilder("INSERT INTO ").append(entity.getTableName()).append("(");
+
+        entity.getAllColumns().forEach((k, v) -> {
+
+        });
+
+        return wasSuccess;
+    }
 }
