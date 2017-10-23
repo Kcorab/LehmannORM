@@ -8,11 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  *
@@ -31,7 +31,7 @@ public class InitUnitTest {
 
     private Connection connection = null;
 
-    @BeforeClass
+    @BeforeAll
     public static void initDriver() throws ClassNotFoundException {
 
     }
@@ -51,7 +51,7 @@ public class InitUnitTest {
         return conn;
     }
 
-    @Before
+    @BeforeEach
     public void init() throws SQLException {
 
         connection = getConnection();
@@ -68,7 +68,7 @@ public class InitUnitTest {
         try {
             resultSet = connection.createStatement().executeQuery(select);
         } catch (final SQLException e) {
-            Assert.fail();
+            Assertions.fail("");
         }
 
         if (resultSet != null)
@@ -91,7 +91,7 @@ public class InitUnitTest {
 
     }
 
-    @After
+    @AfterEach
     public void finish() throws SQLException {
 
         if (connection != null && !connection.isClosed())

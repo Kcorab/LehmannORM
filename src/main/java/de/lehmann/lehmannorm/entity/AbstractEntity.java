@@ -3,7 +3,7 @@ package de.lehmann.lehmannorm.entity;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import de.lehmann.lehmannorm.entity.column.EntityColumn;
+import de.lehmann.lehmannorm.entity.structure.EntityColumn;
 
 /**
  * @author Tim Lehmann
@@ -68,10 +68,10 @@ public abstract class AbstractEntity<PK> {
 
         for (final EntityColumn<?> entityColumn : entityColumns)
             if (fillForeignMap && entityColumn.columnType.isAssignableFrom(AbstractEntity.class))
-                ;
+                ;// TODO: handle entity references
             else {
-                entityColumnsWithValue.put(entityColumn, null);
                 fillForeignMap = false;
+                entityColumnsWithValue.put(entityColumn, null);
             }
     }
 

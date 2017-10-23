@@ -1,7 +1,7 @@
-package de.lehmann.lehmannorm.examples.entities;
+package de.lehmann.lehmannorm.models;
 
 import de.lehmann.lehmannorm.entity.AbstractEntity;
-import de.lehmann.lehmannorm.entity.column.EntityColumn;
+import de.lehmann.lehmannorm.entity.structure.EntityColumn;
 
 public class TestTableEntity extends AbstractEntity<Integer> {
 

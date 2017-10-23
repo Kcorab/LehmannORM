@@ -1,4 +1,4 @@
-package logic;
+package de.lehmann.lehmannorm.models;
 
 public class DatabaseConnectionInformations implements IDatabaseConnectionInformations {
 

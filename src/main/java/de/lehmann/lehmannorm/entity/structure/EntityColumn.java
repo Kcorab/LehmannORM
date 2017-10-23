@@ -1,4 +1,4 @@
-package de.lehmann.lehmannorm.entity.column;
+package de.lehmann.lehmannorm.entity.structure;
 
 import java.util.Objects;
 

@@ -1,11 +1,12 @@
 package de.lehmann.lehmannorm.test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class Technique {
 
@@ -18,7 +19,7 @@ public class Technique {
 
         ((Schnittstelle) one::getSomething).getString();
 
-        Assert.assertEquals("", "something", s.getString());
+        assertEquals("", "something", s.getString());
 
         final List<Integer> list = new ArrayList<>();
 
