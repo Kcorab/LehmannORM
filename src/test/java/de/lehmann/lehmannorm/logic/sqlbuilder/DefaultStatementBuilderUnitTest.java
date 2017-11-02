@@ -1,4 +1,4 @@
-package de.lehmann.lehmannorm.logic;
+package de.lehmann.lehmannorm.logic.sqlbuilder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -10,6 +10,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import de.lehmann.lehmannorm.AConnectionMockUnitTest;
+import de.lehmann.lehmannorm.logic.sqlbuilder.IStatementBuilder;
 import de.lehmann.lehmannorm.models.TestTableEntity;
 
 public class DefaultStatementBuilderUnitTest extends AConnectionMockUnitTest {
@@ -28,10 +29,10 @@ public class DefaultStatementBuilderUnitTest extends AConnectionMockUnitTest {
     public static Object[][] parameters() {
 
         return new Object[][] { {
-                IStatementBuilder.defaultInsertStatement,
+                IStatementBuilder.DEFAULT_INSERT_STATEMENT_BUILDER,
                 "INSERT INTO TEST_TABLE(ID,NUMBER,DESCRIPTION) VALUES(?,?,?);"
         }, {
-                IStatementBuilder.defaultSelectStatement,
+                IStatementBuilder.DEFAULT_SELECT_STATEMENT_BUILDER,
                 "SELECT ID,NUMBER,DESCRIPTION FROM TEST_TABLE WHERE ID=?;"
         } };
     }

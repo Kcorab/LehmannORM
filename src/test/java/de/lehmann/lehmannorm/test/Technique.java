@@ -1,11 +1,6 @@
 package de.lehmann.lehmannorm.test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
-
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class Technique {
@@ -13,52 +8,21 @@ public class Technique {
     @Test
     public void doSomething() {
 
-        final One one = new One();
+        final int hc = int.class.hashCode();
+        final Integer i_0 = 5;
+        final Class<Integer> iC_0 = Integer.class;
+        final Class<?> iC_1 = Integer.class;
 
-        final Schnittstelle s = one::getSomething;
+        Assertions.assertEquals(i_0.getClass(), iC_1);
+        Assertions.assertEquals(iC_0, iC_1);
 
-        ((Schnittstelle) one::getSomething).getString();
+        final Integer hashCodeValueFromIntegerClass_0 = iC_0.hashCode();
+        final Integer hashCodeValueFromIntegerClass_1 = iC_0.hashCode();
 
-        assertEquals("", "something", s.getString());
-
-        final List<Integer> list = new ArrayList<>();
-
-        list.add(3);
-        list.add(5);
-
-        final Stream<Integer> stream = list.stream();
-    }
-
-    public void doSomething(final String param) {
-
-    }
-
-    /* Inner classes */
-
-    public static interface Schnittstelle {
-
-        public String getString();
-    }
-
-    // ## One
-
-    public static class One {
-
-        private String something = "something";
-
-        public String getSomething() {
-            return something;
-        }
-
-        public void setSomething(final String something) {
-            this.something = something;
-        }
-
-    }
-
-    // ## Two
-
-    public static class Two {
+        Assertions.assertEquals(hashCodeValueFromIntegerClass_0, hashCodeValueFromIntegerClass_1);
+        final int a = String.class.hashCode();
+        final int b = "".getClass().hashCode();
+        Assertions.assertEquals(a, b);
 
     }
 }

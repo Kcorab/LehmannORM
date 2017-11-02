@@ -4,14 +4,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
 import de.lehmann.lehmannorm.entity.AbstractEntity;
 import de.lehmann.lehmannorm.entity.structure.EntityColumn;
+import de.lehmann.lehmannorm.logic.sqlbuilder.IStatementBuilder;
+import de.lehmann.lehmannorm.logic.sqlbuilder.IStatementBuilder.DefaultBuilderBundle;
 
 public class Dao<ENTITY extends AbstractEntity<PRIMARY_KEY>, PRIMARY_KEY> {
 
@@ -28,48 +28,17 @@ public class Dao<ENTITY extends AbstractEntity<PRIMARY_KEY>, PRIMARY_KEY> {
 
         final Set<EntityColumn<?>> entityColumns = entity.getAllColumns().keySet();
 
-        final int columnCount = entityColumns.size();
+        final String columns = IStatementBuilder.processEntityColumns(entityColumns);
 
-        if (columnCount <= 0)
-            // TODO: concrete this exception
-            throw new IllegalArgumentException();
+        IStatementBuilder sb;
 
-        final Iterator<EntityColumn<?>> it = entityColumns.iterator();
+        sb = DefaultBuilderBundle.DEFAULT_INSERT_STATEMENT_BUILDER.getStatementBuilder();
+        insertStatement =
+                sb.buildStatement(entity.getTableName(), columns, sb.generateValues(entityColumns), connection);
 
-        final String primaryColumnName = it.next().columnName; // first column have to be the primaty key
-
-        /* Put all column names in a string. */
-
-        final StringBuilder columnsBuilder = new StringBuilder(primaryColumnName);
-        while (it.hasNext()) {
-            final EntityColumn<?> entityColumn = it.next();
-            columnsBuilder.append(",").append(entityColumn.columnName);
-        }
-        final String columnNames = columnsBuilder.toString();
-
-        /* Build string that respresented an insert query. */
-
-        final StringBuilder insertQueryBuilder;
-        insertQueryBuilder = new StringBuilder("INSERT INTO ").append(entity.getTableName()).append("(")
-                .append(columnNames).append(") VALUES(?");
-
-        for (int i = 1; i < columnCount; i++)
-            insertQueryBuilder.append(",?");
-
-        insertQueryBuilder.append(");");
-
-        this.insertStatement = connection.prepareStatement(insertQueryBuilder.toString(),
-                Statement.RETURN_GENERATED_KEYS);
-
-        // Build string that respresented an get query.
-
-        final StringBuilder selectQueryBuilder;
-        selectQueryBuilder = new StringBuilder("SELECT ").append(columnNames).append(" FROM ")
-                .append(entity.getTableName()).append(" WHERE ").append(entity.getPrimaryKeyColumn().columnName)
-                .append(" = ?;");
-
-        this.selectStatement = connection.prepareStatement(selectQueryBuilder.toString());
-
+        sb = DefaultBuilderBundle.DEFAULT_SELECT_STATEMENT_BUILDER.getStatementBuilder();
+        selectStatement =
+                sb.buildStatement(entity.getTableName(), columns, sb.generateValues(entityColumns), connection);
     }
 
     private Dao(final Connection connection, final Class<ENTITY> entityType)
@@ -143,16 +112,17 @@ public class Dao<ENTITY extends AbstractEntity<PRIMARY_KEY>, PRIMARY_KEY> {
         return wasSuccess;
     }
 
-    public static boolean insert(final AbstractEntity entity, final Connection connection) {
+    public static boolean insert(final AbstractEntity<Integer> entity, final Connection connection) {
 
-        final boolean wasSuccess = false;
+        boolean wasSuccess = false;
 
-        final StringBuilder insertQueryBuilder;
-        insertQueryBuilder = new StringBuilder("INSERT INTO ").append(entity.getTableName()).append("(");
-
-        entity.getAllColumns().forEach((k, v) -> {
-
-        });
+        try {
+            IStatementBuilder.DEFAULT_INSERT_STATEMENT_BUILDER.buildStatement(entity.getTableName(),
+                    entity.getAllColumns().keySet(), connection);
+            wasSuccess = true;
+        } catch (final SQLException e) {
+            e.printStackTrace();
+        }
 
         return wasSuccess;
     }
