@@ -15,21 +15,25 @@ repositories {
     jcenter()
 }
 
+configurations {
+	ideModules
+}
+
 dependencies {
+
+	ideModules("org.junit.platform:junit-platform-console-standalone:1.0.1")
             
-    // JDBC MySQL
-    compile group: 'mysql', name: 'mysql-connector-java', version: '6.0.6'
-    
-    compile group: 'org.openjdk.jmh', name: 'jmh-core', version: '1.19'
-    compile group: 'org.junit.platform', name: 'junit-platform-console-standalone', version: '1.0.1'
+    compile("mysql:mysql-connector-java:6.0.6")
+    compile("org.openjdk.jmh:jmh-core:1.19")
     
     testCompile("org.junit.jupiter:junit-jupiter-params:5.0.1")
     testCompile("org.junit.jupiter:junit-jupiter-api:5.0.1")
 	testRuntime("org.junit.jupiter:junit-jupiter-engine:5.0.1")
 }
 
-task copyRuntimeLibs(type: Copy){
-
-	into "$buildDir/output/lib"
-	from configurations.runtime
+task copyIdeModules(type: Copy) {
+    from configurations.ideModules
+    into "ideModules"
 }
+
+build.finalizedBy(copyIdeModules)
