@@ -1,35 +1,40 @@
 package de.lehmann.lehmannorm.entity.structure;
 
+import java.util.Map;
+
 /**
  * @author Tim Lehmann
  *
- * @param <ECV>
- *            type of the entity column value
+ * @param <ECVT>
+ *            entity column value type
  */
-public class EntityColumnInfo<ECV> implements IEntityColumnInfo<ECV> {
+public class EntityColumnInfo<ECVT> implements Map.Entry<EntityColumn<ECVT>, ECVT> {
 
-    public final EntityColumn<ECV> entityColumn;
-    private ECV                    entityColumnValue;
+    public final EntityColumn<ECVT> entityColumn;
+    private ECVT                    entityColumnValue;
 
-    public EntityColumnInfo(final EntityColumn<ECV> entityColumn, final ECV entityColumnValue) {
+    public EntityColumnInfo(final EntityColumn<ECVT> entityColumn, final ECVT entityColumnValue) {
         super();
         this.entityColumn = entityColumn;
         this.entityColumnValue = entityColumnValue;
     }
 
     @Override
-    public EntityColumn<ECV> getEntityColumn() {
+    public EntityColumn<ECVT> getKey() {
         return entityColumn;
     }
 
     @Override
-    public ECV getEntityColumnValue() {
+    public ECVT getValue() {
         return entityColumnValue;
     }
 
     @Override
-    public void setEntityColumnValue(final ECV entityColumnValue) {
+    public ECVT setValue(final ECVT value) {
 
-        this.entityColumnValue = entityColumnValue;
+        final ECVT oldValue = this.entityColumnValue;
+        this.entityColumnValue = value;
+
+        return oldValue;
     }
 }
