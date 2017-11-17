@@ -4,19 +4,57 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Stack;
 
 import de.lehmann.lehmannorm.entity.AbstractEntity;
-import de.lehmann.lehmannorm.entity.structure.EntityColumn;
+import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
 import de.lehmann.lehmannorm.logic.sqlbuilder.IStatementBuilder;
 import de.lehmann.lehmannorm.logic.sqlbuilder.IStatementBuilder.DefaultBuilderBundle;
 
-public class Dao<ENTITY extends AbstractEntity<PRIMARY_KEY>, PRIMARY_KEY> {
+/**
+ *
+ * @author Tim Lehmann
+ *
+ * @param <E>
+ *            entity
+ * @param <PK>
+ *            primary key
+ */
+public class Dao<E extends AbstractEntity<PK>, PK> {
 
-    public static <ENTITY extends AbstractEntity<PRIMARY_KEY>, PRIMARY_KEY> Dao<ENTITY, PRIMARY_KEY> createInstance(
-            final Connection connection, final Class<ENTITY> entityType)
+    // TODO: Make the type check stronger by a Map-Wrapper.
+    private final Map<Class<? extends AbstractEntity<?>>, Dao<?, ?>> daoCache = new HashMap<>();
+
+    /**
+     *
+     * @param connection
+     * @param entityType
+     * @return
+     * @throws SQLException
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     */
+    public static <E extends AbstractEntity<PK>, PK> Dao<E, PK> createInstance(
+            final Connection connection, final Class<E> entityType)
+            throws SQLException, InstantiationException, IllegalAccessException {
+        return new Dao<>(connection, entityType);
+    }
+
+    /**
+     *
+     * @param connection
+     * @param entityType
+     * @return
+     * @throws SQLException
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     */
+    private static <E extends AbstractEntity<PK>, PK> Dao<E, PK> createInstance(
+            final Connection connection, final E entityType)
             throws SQLException, InstantiationException, IllegalAccessException {
         return new Dao<>(connection, entityType);
     }
@@ -24,9 +62,9 @@ public class Dao<ENTITY extends AbstractEntity<PRIMARY_KEY>, PRIMARY_KEY> {
     private final PreparedStatement insertStatement;
     private final PreparedStatement selectStatement;
 
-    private Dao(final Connection connection, final ENTITY entity) throws SQLException {
+    private Dao(final Connection connection, final E entity) throws SQLException {
 
-        final Set<EntityColumn<?>> entityColumns = entity.getAllColumns().keySet();
+        final Set<EntityColumnInfo<?>> entityColumns = entity.getAllColumns().keySet();
 
         final String columns = IStatementBuilder.processEntityColumns(entityColumns);
 
@@ -34,55 +72,83 @@ public class Dao<ENTITY extends AbstractEntity<PRIMARY_KEY>, PRIMARY_KEY> {
 
         sb = DefaultBuilderBundle.DEFAULT_INSERT_STATEMENT_BUILDER.getStatementBuilder();
         insertStatement =
-                sb.buildStatement(entity.getTableName(), columns, sb.generateValues(entityColumns), connection);
+                sb.buildStatement(entity.getTableName(), columns, sb.generateStatementTail(entityColumns), connection);
 
         sb = DefaultBuilderBundle.DEFAULT_SELECT_STATEMENT_BUILDER.getStatementBuilder();
         selectStatement =
-                sb.buildStatement(entity.getTableName(), columns, sb.generateValues(entityColumns), connection);
+                sb.buildStatement(entity.getTableName(), columns, sb.generateStatementTail(entityColumns), connection);
     }
 
-    private Dao(final Connection connection, final Class<ENTITY> entityType)
+    private Dao(final Connection connection, final Class<E> entityType)
             throws InstantiationException, IllegalAccessException, SQLException {
 
         this(connection, entityType.newInstance());
     }
 
-    public boolean insert(final ENTITY entity) {
+    public boolean insert(final E entity) {
 
-        boolean wasSuccess = false;
+        final boolean wasSuccess = false;
 
-        final Map<EntityColumn<?>, Object> map = entity.getAllColumns();
+        final Stack<AbstractEntityToIndex> stack = new Stack<>();
 
-        final Set<Entry<EntityColumn<?>, Object>> entrySet = map.entrySet();
+        final Map<EntityColumnInfo<?>, Object> map = entity.getAllColumns();
+        final Set<Entry<EntityColumnInfo<?>, Object>> entrySet = map.entrySet();
 
-        int i = 0;
-        try {
-            for (final Entry<EntityColumn<?>, Object> entry : entrySet)
-                this.insertStatement.setObject(++i, entry.getValue());
-        } catch (final SQLException e) {
+        final int size = entrySet.size();
+        for (int i = 0; i < size; i++) {
 
-            e.printStackTrace();
-        }
-
-        try {
-            this.insertStatement.executeUpdate();
-            final ResultSet generatedKeys = this.insertStatement.getGeneratedKeys();
-
-            if (generatedKeys != null)
-                if (generatedKeys.next()) {
-
-                    final PRIMARY_KEY primaryKey = generatedKeys.getObject(1, entity.getPrimaryKeyColumn().columnType);
-                    entity.setPrimaryKeyValue(primaryKey);
-
-                    wasSuccess = true;
-                }
-        } catch (final SQLException e) {
         }
 
         return wasSuccess;
     }
 
-    public boolean getEntityByPk(final ENTITY entity) {
+    private boolean doInsert(final Set<AbstractEntity<Object>> insertOrder) {
+
+        for (final AbstractEntity<Object> entity : insertOrder) {
+
+            final Map<EntityColumnInfo<?>, Object> map = entity.getAllColumns();
+
+            final Set<Entry<EntityColumnInfo<?>, Object>> entrySet = map.entrySet();
+
+            int i = 0;
+            try {
+
+                for (final Entry<EntityColumnInfo<?>, Object> entry : entrySet) {
+
+                    final Class<?> columnType = entry.getKey().columnType;
+                    if (AbstractEntity.class.isAssignableFrom(columnType)) {
+
+                        // Todo: introduction of column options
+                    } else
+                        this.insertStatement.setObject(++i, entry.getValue());
+
+                }
+
+            } catch (final SQLException e) {
+
+                e.printStackTrace();
+            }
+
+            try {
+                this.insertStatement.executeUpdate();
+                final ResultSet generatedKeys = this.insertStatement.getGeneratedKeys();
+
+                if (generatedKeys != null)
+                    if (generatedKeys.next()) {
+
+                        final Object primaryKey = generatedKeys.getObject(1, entity.getPrimaryKeyInfo().columnType);
+                        entity.setPrimaryKeyValue(primaryKey);
+
+                    }
+            } catch (final SQLException e) {
+            }
+
+        }
+
+        return false;
+    }
+
+    public boolean getEntityByPk(final E entity) {
 
         boolean wasSuccess = false;
 
@@ -92,12 +158,12 @@ public class Dao<ENTITY extends AbstractEntity<PRIMARY_KEY>, PRIMARY_KEY> {
 
             if (resultSet != null && resultSet.next()) {
 
-                final Set<Entry<EntityColumn<?>, Object>> entrySet = entity.getAllColumns().entrySet();
+                final Set<Entry<EntityColumnInfo<?>, Object>> entrySet = entity.getAllColumns().entrySet();
 
                 int i = 1; // primary key already set; jump over
 
                 // for loop instead of forEach method to avoid an extra try catch block
-                for (final Entry<EntityColumn<?>, Object> entry : entrySet) {
+                for (final Entry<EntityColumnInfo<?>, Object> entry : entrySet) {
 
                     final Object object = resultSet.getObject(++i, entry.getKey().columnType);
                     entry.setValue(object);
@@ -125,5 +191,52 @@ public class Dao<ENTITY extends AbstractEntity<PRIMARY_KEY>, PRIMARY_KEY> {
         }
 
         return wasSuccess;
+    }
+
+    private Dao<?, ?> getDao(final Connection connection, final E entity) {
+
+        final Map<EntityColumnInfo<?>, Object> allColumns = entity.getAllColumns();
+        final Set<Entry<EntityColumnInfo<?>, Object>> entrySet = allColumns.entrySet();
+
+        Dao newDao = null;
+
+        for (final Entry<EntityColumnInfo<?>, Object> entry : entrySet) {
+
+            final EntityColumnInfo<?> key = entry.getKey();
+
+            final Class<?> columnType = key.columnType;
+
+            if (AbstractEntity.class.isAssignableFrom(columnType)) {
+
+                final Class<? extends AbstractEntity<?>> clazz =
+                        (Class<? extends AbstractEntity<?>>) columnType;
+
+                if (!this.daoCache.containsKey(clazz)) {
+
+                    final AbstractEntity value = (AbstractEntity) entry.getValue();
+                    try {
+                        newDao = Dao.createInstance(connection, value);
+                        this.daoCache.put(clazz, newDao);
+                    } catch (InstantiationException | IllegalAccessException | SQLException e) {
+                        e.printStackTrace();
+                    }
+                } else
+                    newDao = this.daoCache.get(clazz);
+            }
+        }
+
+        return newDao;
+    }
+
+    private class AbstractEntityToIndex {
+
+        public final AbstractEntity<Object> entity;
+        public final Integer                index;
+
+        public AbstractEntityToIndex(final AbstractEntity<Object> entity, final Integer index) {
+            super();
+            this.entity = entity;
+            this.index = index;
+        }
     }
 }

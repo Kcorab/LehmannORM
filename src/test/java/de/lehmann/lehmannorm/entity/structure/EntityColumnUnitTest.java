@@ -9,11 +9,11 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import de.lehmann.lehmannorm.entity.structure.EntityColumn;
+import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
 
 public class EntityColumnUnitTest {
 
-    public Map<EntityColumn<?>, String> map = new LinkedHashMap<>();
+    public Map<EntityColumnInfo<?>, String> map = new LinkedHashMap<>();
 
     @BeforeEach
     public void beforeTestMap() {
@@ -24,22 +24,22 @@ public class EntityColumnUnitTest {
     @Test
     public void testEquals() {
 
-        assertEquals(new EntityColumn<>("COLUMN", Integer.class), new EntityColumn<>("COLUMN", Integer.class));
-        assertNotEquals(new EntityColumn<>("COLUMN", Integer.class), new EntityColumn<>("COLUMN", Long.class));
+        assertEquals(new EntityColumnInfo<>("COLUMN", Integer.class), new EntityColumnInfo<>("COLUMN", Integer.class));
+        assertNotEquals(new EntityColumnInfo<>("COLUMN", Integer.class), new EntityColumnInfo<>("COLUMN", Long.class));
     }
 
     @Test
     public void testMap() {
 
         final String excpectedValue = "assignedValue";
-        map.put(new EntityColumn<>("COLUMN", String.class), excpectedValue);
+        map.put(new EntityColumnInfo<>("COLUMN", String.class), excpectedValue);
 
         String actualValue;
 
-        actualValue = map.get(new EntityColumn<>("COLUMN", String.class));
+        actualValue = map.get(new EntityColumnInfo<>("COLUMN", String.class));
         assertEquals(excpectedValue, actualValue);
 
-        actualValue = map.get(new EntityColumn<>("COLUMN", Integer.class));
+        actualValue = map.get(new EntityColumnInfo<>("COLUMN", Integer.class));
         assertNotEquals(excpectedValue, actualValue);
     }
 }

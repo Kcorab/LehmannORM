@@ -1,40 +1,46 @@
 package de.lehmann.lehmannorm.entity.structure;
 
-import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Tim Lehmann
  *
  * @param <ECVT>
- *            entity column value type
+ *            type of entity column value which is not stored in this class
  */
-public class EntityColumnInfo<ECVT> implements Map.Entry<EntityColumn<ECVT>, ECVT> {
+public class EntityColumnInfo<ECVT> {
 
-    public final EntityColumn<ECVT> entityColumn;
-    private ECVT                    entityColumnValue;
+    public final String      columnName;
+    public final Class<ECVT> columnType;
 
-    public EntityColumnInfo(final EntityColumn<ECVT> entityColumn, final ECVT entityColumnValue) {
+    public EntityColumnInfo(final String columnName, final Class<ECVT> columnType) {
         super();
-        this.entityColumn = entityColumn;
-        this.entityColumnValue = entityColumnValue;
+        if (columnType == null || "".equals(columnName))
+            throw new IllegalArgumentException("The constructors parameter haven't to be null or empty!");
+
+        this.columnName = columnName;
+        this.columnType = columnType;
     }
 
     @Override
-    public EntityColumn<ECVT> getKey() {
-        return entityColumn;
+    public int hashCode() {
+        return columnName.hashCode();
     }
 
     @Override
-    public ECVT getValue() {
-        return entityColumnValue;
-    }
+    public boolean equals(final Object obj) {
 
-    @Override
-    public ECVT setValue(final ECVT value) {
+        if (this == obj)
+            return true;
 
-        final ECVT oldValue = this.entityColumnValue;
-        this.entityColumnValue = value;
+        if (obj != null && getClass().equals(obj.getClass())) {
 
-        return oldValue;
+            final EntityColumnInfo<?> other = (EntityColumnInfo<?>) obj;
+
+            return Objects.equals(this.columnName, other.columnName)
+                    && Objects.equals(this.columnType, other.columnType);
+        }
+
+        return false;
     }
 }

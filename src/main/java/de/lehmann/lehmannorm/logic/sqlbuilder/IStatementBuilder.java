@@ -6,11 +6,11 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.Set;
 
-import de.lehmann.lehmannorm.entity.structure.EntityColumn;
+import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
 
 public interface IStatementBuilder {
 
-    PreparedStatement buildStatement(final String tableName, final Set<EntityColumn<?>> entityColumns,
+    PreparedStatement buildStatement(final String tableName, final Set<EntityColumnInfo<?>> entityColumnInfos,
             final Connection connection)
             throws SQLException;
 
@@ -18,27 +18,27 @@ public interface IStatementBuilder {
             final Connection connection)
             throws SQLException;
 
-    String generateValues(final Set<EntityColumn<?>> entityColumns);
+    String generateStatementTail(final Set<EntityColumnInfo<?>> entityColumnInfos);
 
     static final IStatementBuilder DEFAULT_INSERT_STATEMENT_BUILDER = new InsertStatementBuilder();
 
     static final IStatementBuilder DEFAULT_SELECT_STATEMENT_BUILDER = new SelectStatementBuilder();
 
     /**
-     * @param entityColumns
+     * @param entityColumnInfos
      * @return column names seperated by ',' in brackets
      */
-    static String processEntityColumns(final Set<EntityColumn<?>> entityColumns) {
+    static String processEntityColumns(final Set<EntityColumnInfo<?>> entityColumnInfos) {
 
         final StringBuilder columnsBuilder;
-        final Iterator<EntityColumn<?>> it = entityColumns.iterator();
+        final Iterator<EntityColumnInfo<?>> it = entityColumnInfos.iterator();
 
         // Put all column names in a string.
 
         columnsBuilder = new StringBuilder(it.next().columnName);
         while (it.hasNext()) {
-            final EntityColumn<?> entityColumn = it.next();
-            columnsBuilder.append(",").append(entityColumn.columnName);
+            final EntityColumnInfo<?> entityColumnInfo = it.next();
+            columnsBuilder.append(",").append(entityColumnInfo.columnName);
         }
 
         return columnsBuilder.toString();

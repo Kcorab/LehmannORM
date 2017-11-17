@@ -8,16 +8,16 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Set;
 
-import de.lehmann.lehmannorm.entity.structure.EntityColumn;
+import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
 
 public class InsertStatementBuilder implements IStatementBuilder {
 
     @Override
-    public PreparedStatement buildStatement(final String tableName, final Set<EntityColumn<?>> entityColumns,
+    public PreparedStatement buildStatement(final String tableName, final Set<EntityColumnInfo<?>> entityColumnInfos,
             final Connection connection) throws SQLException {
 
-        final String columnNames = processEntityColumns(entityColumns);
-        final String unkownValues = generateValues(entityColumns);
+        final String columnNames = processEntityColumns(entityColumnInfos);
+        final String unkownValues = generateStatementTail(entityColumnInfos);
 
         return buildStatement(tableName, columnNames, unkownValues, connection);
     }
@@ -43,9 +43,9 @@ public class InsertStatementBuilder implements IStatementBuilder {
     }
 
     @Override
-    public String generateValues(final Set<EntityColumn<?>> entityColumns) {
+    public String generateStatementTail(final Set<EntityColumnInfo<?>> entityColumnInfos) {
 
-        final int columnCount = entityColumns.size();
+        final int columnCount = entityColumnInfos.size();
 
         final StringBuilder valuesBuilder;
         valuesBuilder = new StringBuilder("(?");

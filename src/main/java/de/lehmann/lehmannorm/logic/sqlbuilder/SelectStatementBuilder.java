@@ -7,18 +7,18 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Set;
 
-import de.lehmann.lehmannorm.entity.structure.EntityColumn;
+import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
 
 public class SelectStatementBuilder implements IStatementBuilder {
 
     @Override
-    public PreparedStatement buildStatement(final String tableName, final Set<EntityColumn<?>> entityColumns,
+    public PreparedStatement buildStatement(final String tableName, final Set<EntityColumnInfo<?>> entityColumnInfos,
             final Connection connection) throws SQLException {
 
-        final String columnNames = processEntityColumns(entityColumns);
-        final String values = generateValues(entityColumns);
+        final String columnNames = processEntityColumns(entityColumnInfos);
+        final String primaryKeyName = generateStatementTail(entityColumnInfos);
 
-        return buildStatement(tableName, columnNames, values, connection);
+        return buildStatement(tableName, columnNames, primaryKeyName, connection);
     }
 
     @Override
@@ -37,8 +37,8 @@ public class SelectStatementBuilder implements IStatementBuilder {
     }
 
     @Override
-    public String generateValues(final Set<EntityColumn<?>> entityColumns) {
+    public String generateStatementTail(final Set<EntityColumnInfo<?>> entityColumnInfos) {
 
-        return entityColumns.iterator().next().columnName;
+        return entityColumnInfos.iterator().next().columnName;
     }
 }
