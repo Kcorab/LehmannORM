@@ -55,7 +55,7 @@ public abstract class AbstractEntity<PK> {
         this.primaryKeyInfo = sourceEntity.primaryKeyInfo;
         this.entityColumns = new LinkedHashMap<>(sourceEntity.entityColumns.size());
 
-        // copy all immutable values of type EntityColumn to this entryset.
+        // Copy all immutable values of type EntityColumn to this entryset.
         sourceEntity.entityColumns.forEach((k, v) -> {
             this.entityColumns.put(k, null);
         });
@@ -68,9 +68,9 @@ public abstract class AbstractEntity<PK> {
         boolean fillForeignMap = true;
 
         for (final EntityColumnInfo<?> entityColumn : entityColumnInfos)
-            if (fillForeignMap && entityColumn.columnType.isAssignableFrom(AbstractEntity.class))
-                ;// TODO: handle entity references
-            else {
+            if (fillForeignMap && entityColumn.columnType.isAssignableFrom(AbstractEntity.class)) {
+                // TODO: handle entity references
+            } else {
                 fillForeignMap = false;
                 entityColumns.put(entityColumn, null);
             }

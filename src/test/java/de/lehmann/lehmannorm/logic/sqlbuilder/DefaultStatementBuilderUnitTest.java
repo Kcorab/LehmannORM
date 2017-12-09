@@ -10,7 +10,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import de.lehmann.lehmannorm.AConnectionMockUnitTest;
-import de.lehmann.lehmannorm.logic.sqlbuilder.IStatementBuilder;
 import de.lehmann.lehmannorm.models.TestTableEntity;
 
 public class DefaultStatementBuilderUnitTest extends AConnectionMockUnitTest {

@@ -4,11 +4,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Stack;
 
 import de.lehmann.lehmannorm.entity.AbstractEntity;
 import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
@@ -26,7 +27,6 @@ import de.lehmann.lehmannorm.logic.sqlbuilder.IStatementBuilder.DefaultBuilderBu
  */
 public class Dao<E extends AbstractEntity<PK>, PK> {
 
-    // TODO: Make the type check stronger by a Map-Wrapper.
     private final Map<Class<? extends AbstractEntity<?>>, Dao<?, ?>> daoCache = new HashMap<>();
 
     /**
@@ -89,7 +89,7 @@ public class Dao<E extends AbstractEntity<PK>, PK> {
 
         final boolean wasSuccess = false;
 
-        final Stack<AbstractEntityToIndex> stack = new Stack<>();
+        final Deque<AbstractEntity<?>> deque = new ArrayDeque<>();
 
         final Map<EntityColumnInfo<?>, Object> map = entity.getAllColumns();
         final Set<Entry<EntityColumnInfo<?>, Object>> entrySet = map.entrySet();
@@ -151,12 +151,14 @@ public class Dao<E extends AbstractEntity<PK>, PK> {
     public boolean getEntityByPk(final E entity) {
 
         boolean wasSuccess = false;
+        ResultSet resultSet = null;
 
         try {
             this.selectStatement.setObject(1, entity.getPrimaryKeyValue());
-            final ResultSet resultSet = selectStatement.executeQuery();
 
-            if (resultSet != null && resultSet.next()) {
+            resultSet = selectStatement.executeQuery();
+
+            if (resultSet.next()) {
 
                 final Set<Entry<EntityColumnInfo<?>, Object>> entrySet = entity.getAllColumns().entrySet();
 
@@ -173,6 +175,13 @@ public class Dao<E extends AbstractEntity<PK>, PK> {
             }
 
         } catch (final SQLException e) {
+
+        } finally {
+            if (resultSet != null)
+                try {
+                    resultSet.close();
+                } catch (final SQLException e) {
+                }
         }
 
         return wasSuccess;

@@ -12,4 +12,8 @@ import java.util.Map;
 public interface IColumnMap<ECVT> extends Map<EntityColumnInfo<ECVT>, ECVT> {
 
     Map.Entry<EntityColumnInfo<ECVT>, ECVT> get(final int index);
+
+    EntityColumnInfo<ECVT> getColumnInfo(final int index);
+
+    ECVT getColumnValue(final int index);
 }
