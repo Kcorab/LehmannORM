@@ -2,6 +2,7 @@ package de.lehmann.lehmannorm.logic;
 
 import java.sql.SQLException;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import de.lehmann.lehmannorm.AConnectionMockUnitTest;
@@ -15,6 +16,7 @@ public class DaoUnitTest extends AConnectionMockUnitTest {
     private Dao<TierTestEntity, Integer> unitToTest;
 
     @Test
+    @Disabled
     public void testDaoCaching() throws InstantiationException, IllegalAccessException, SQLException {
 
         final TierTestEntity tierA = createNestedEntities();

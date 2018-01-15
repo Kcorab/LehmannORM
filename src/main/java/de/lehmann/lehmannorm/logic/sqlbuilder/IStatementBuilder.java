@@ -7,44 +7,52 @@ import java.util.Iterator;
 import java.util.Set;
 
 import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
+import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo.ForeignKeyHolder;
 
 public interface IStatementBuilder {
 
-    PreparedStatement buildStatement(final String tableName, final Set<EntityColumnInfo<?>> entityColumnInfos,
+    PreparedStatement buildStatement(final String tableName, final Set<EntityColumnInfo<Object>> entityColumnInfos,
             final Connection connection)
             throws SQLException;
 
-    PreparedStatement buildStatement(final String tableName, final String columnsSeperatedByComma, final String values,
+    PreparedStatement buildStatement(final String tableName, final String columnsSeperatedByComma, final String tail,
             final Connection connection)
             throws SQLException;
 
-    String generateStatementTail(final Set<EntityColumnInfo<?>> entityColumnInfos);
-
-    static final IStatementBuilder DEFAULT_INSERT_STATEMENT_BUILDER = new InsertStatementBuilder();
-
-    static final IStatementBuilder DEFAULT_SELECT_STATEMENT_BUILDER = new SelectStatementBuilder();
+    String generateStatementTail(final Set<EntityColumnInfo<Object>> entityColumnInfos);
 
     /**
      * @param entityColumnInfos
      * @return column names seperated by ',' in brackets
      */
-    static String processEntityColumns(final Set<EntityColumnInfo<?>> entityColumnInfos) {
+    static String processEntityColumns(final Set<EntityColumnInfo<Object>> entityColumnInfos) {
 
         final StringBuilder columnsBuilder;
-        final Iterator<EntityColumnInfo<?>> it = entityColumnInfos.iterator();
+        final Iterator<EntityColumnInfo<Object>> it = entityColumnInfos.iterator();
 
         // Put all column names in a string.
 
         columnsBuilder = new StringBuilder(it.next().columnName);
         while (it.hasNext()) {
             final EntityColumnInfo<?> entityColumnInfo = it.next();
-            columnsBuilder.append(",").append(entityColumnInfo.columnName);
+
+            /*
+             * EntityColumnInfo ensures that only if the column value type is an entity
+             * there is an foreign key holder.
+             *
+             * So, only add the column name to the builder if the entity column info
+             * represents a primitive value type or the foreign key for the referenced
+             * entity is hold by this entity.
+             */
+            if (entityColumnInfo.foreignKeyHolder == null
+                    || entityColumnInfo.foreignKeyHolder == ForeignKeyHolder.THIS_ENTITY_TYPE)
+                columnsBuilder.append(",").append(entityColumnInfo.columnName);
         }
 
         return columnsBuilder.toString();
     }
 
-    public static enum DefaultBuilderBundle {
+    public enum DefaultBuilderBundle {
 
         DEFAULT_INSERT_STATEMENT_BUILDER(new InsertStatementBuilder()),
 

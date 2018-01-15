@@ -1,9 +1,8 @@
 package de.lehmann.lehmannorm.entity;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
+import de.lehmann.lehmannorm.entity.structure.ColumnMap;
 import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
+import de.lehmann.lehmannorm.entity.structure.IBoundedColumnMap;
 
 /**
  * @author Tim Lehmann
@@ -13,8 +12,8 @@ import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
  */
 public abstract class AbstractEntity<PK> {
 
-    private final EntityColumnInfo<PK>             primaryKeyInfo;
-    private final Map<EntityColumnInfo<?>, Object> entityColumns;
+    private final EntityColumnInfo<PK>      primaryKeyInfo;
+    private final IBoundedColumnMap<Object> entityColumns;
 
     // Constructors
 
@@ -37,13 +36,14 @@ public abstract class AbstractEntity<PK> {
         this(primaryKeyInfo, null, entityColumnInfos);
     }
 
+    @SuppressWarnings("unchecked")
     protected AbstractEntity(final EntityColumnInfo<PK> primaryKeyColumnInfo, final PK primaryKeyValue,
             final EntityColumnInfo<?>... entityColumnInfos) {
 
         this.primaryKeyInfo = primaryKeyColumnInfo;
-        this.entityColumns = new LinkedHashMap<>(1 + entityColumnInfos.length);
+        this.entityColumns = new ColumnMap<>(1 + entityColumnInfos.length);
 
-        entityColumns.put(primaryKeyColumnInfo, primaryKeyValue);
+        entityColumns.put((EntityColumnInfo<Object>) primaryKeyColumnInfo, primaryKeyValue);
 
         initColumns(entityColumnInfos);
     }
@@ -53,16 +53,15 @@ public abstract class AbstractEntity<PK> {
     public AbstractEntity(final AbstractEntity<PK> sourceEntity) {
 
         this.primaryKeyInfo = sourceEntity.primaryKeyInfo;
-        this.entityColumns = new LinkedHashMap<>(sourceEntity.entityColumns.size());
+        this.entityColumns = new ColumnMap<>(sourceEntity.entityColumns.size());
 
         // Copy all immutable values of type EntityColumn to this entryset.
-        sourceEntity.entityColumns.forEach((k, v) -> {
-            this.entityColumns.put(k, null);
-        });
+        sourceEntity.entityColumns.forEach((k, v) -> this.entityColumns.put(k, null));
     }
 
     // constructor methods
 
+    @SuppressWarnings("unchecked")
     private void initColumns(final EntityColumnInfo<?>... entityColumnInfos) {
 
         boolean fillForeignMap = true;
@@ -72,7 +71,7 @@ public abstract class AbstractEntity<PK> {
                 // TODO: handle entity references
             } else {
                 fillForeignMap = false;
-                entityColumns.put(entityColumn, null);
+                entityColumns.put((EntityColumnInfo<Object>) entityColumn, null);
             }
     }
 
@@ -83,17 +82,18 @@ public abstract class AbstractEntity<PK> {
         return entityColumnInfo.columnType.cast(entityColumns.get(entityColumnInfo));
     }
 
+    @SuppressWarnings("unchecked")
     public <T> boolean setColumnValue(final EntityColumnInfo<T> entityColumnInfo, final T entityColumnValue) {
 
         final boolean success = this.entityColumns.containsKey(entityColumnInfo);
 
         if (success)
-            this.entityColumns.put(entityColumnInfo, entityColumnValue);
+            this.entityColumns.put((EntityColumnInfo<Object>) entityColumnInfo, entityColumnValue);
 
         return success;
     }
 
-    public Map<EntityColumnInfo<?>, Object> getAllColumns() {
+    public IBoundedColumnMap<Object> getAllColumns() {
 
         return this.entityColumns;
     }
@@ -107,8 +107,9 @@ public abstract class AbstractEntity<PK> {
         return this.primaryKeyInfo.columnType.cast(entityColumns.get(primaryKeyInfo));
     }
 
+    @SuppressWarnings("unchecked")
     public void setPrimaryKeyValue(final PK primaryKeyValue) {
-        this.entityColumns.put(primaryKeyInfo, primaryKeyValue);
+        this.entityColumns.put((EntityColumnInfo<Object>) primaryKeyInfo, primaryKeyValue);
     }
 
     public abstract String getTableName();

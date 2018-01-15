@@ -13,7 +13,8 @@ import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
 public class InsertStatementBuilder implements IStatementBuilder {
 
     @Override
-    public PreparedStatement buildStatement(final String tableName, final Set<EntityColumnInfo<?>> entityColumnInfos,
+    public PreparedStatement buildStatement(final String tableName,
+            final Set<EntityColumnInfo<Object>> entityColumnInfos,
             final Connection connection) throws SQLException {
 
         final String columnNames = processEntityColumns(entityColumnInfos);
@@ -24,26 +25,23 @@ public class InsertStatementBuilder implements IStatementBuilder {
 
     @Override
     public PreparedStatement buildStatement(final String tableName, final String columnsSeperatedByComma,
-            final String values,
+            final String tail,
             final Connection connection) throws SQLException {
 
-        final String insertQueryBuilder = "INSERT INTO "
+        final String insertQuery = "INSERT INTO "
                 + tableName
                 + "("
                 + columnsSeperatedByComma
                 + ")"
                 + " VALUES"
-                + values
+                + tail
                 + ";";
 
-        final PreparedStatement prepareStatement = connection.prepareStatement(insertQueryBuilder.toString(),
-                Statement.RETURN_GENERATED_KEYS);
-
-        return prepareStatement;
+        return connection.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS);
     }
 
     @Override
-    public String generateStatementTail(final Set<EntityColumnInfo<?>> entityColumnInfos) {
+    public String generateStatementTail(final Set<EntityColumnInfo<Object>> entityColumnInfos) {
 
         final int columnCount = entityColumnInfos.size();
 

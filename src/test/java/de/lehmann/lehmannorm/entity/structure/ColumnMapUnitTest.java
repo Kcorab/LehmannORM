@@ -12,8 +12,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 public class ColumnMapUnitTest {
 
-    private static IColumnMap<Object> unitToStaticTest;
-    private static IColumnMap<Object> unitToDynamicTest;
+    private static IBoundedColumnMap<Object> unitToStaticTest;
+    private static IBoundedColumnMap<Object> unitToDynamicTest;
 
     @BeforeAll
     public static void createStaticColumnMap() {
@@ -120,5 +120,10 @@ public class ColumnMapUnitTest {
         assertEquals(expectedEntityColumn0, actualEntityColumn0);
         assertEquals(expectedEntityColumn1, actualEntityColumn1);
         assertEquals(expectedEntityColumn2, actualEntityColumn2);
+    }
+
+    @Test
+    public void testBreakTypeSave() {
+
     }
 }

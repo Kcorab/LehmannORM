@@ -17,10 +17,10 @@ import java.util.Set;
  * @param <ECVT>
  *            entity column value type
  */
-public class ColumnMap<ECVT> implements IColumnMap<ECVT> {
+public class ColumnMap<ECVT> implements IBoundedColumnMap<ECVT> {
 
-    private final LinkedHashMap<EntityColumnInfo<ECVT>, ECVT> mapForColumns;
-    private final List<EntityColumnInfo<ECVT>>                listForColumns;
+    private final Map<EntityColumnInfo<ECVT>, ECVT> mapForColumns;
+    private final List<EntityColumnInfo<ECVT>>      listForColumns;
 
     /**
      * Constructs an empty list map hybrid with an initial capacity of ten.
@@ -84,14 +84,12 @@ public class ColumnMap<ECVT> implements IColumnMap<ECVT> {
     }
 
     @Override
-    public EntityColumnInfo<ECVT> getColumnInfo(final int index) {
-
+    public EntityColumnInfo<ECVT> getKeyByIndex(final int index) {
         return listForColumns.get(index);
     }
 
     @Override
-    public ECVT getColumnValue(final int index) {
-
+    public ECVT getValueByIndex(final int index) {
         final EntityColumnInfo<ECVT> entityColumnInfo = listForColumns.get(index);
         return mapForColumns.get(entityColumnInfo);
     }
