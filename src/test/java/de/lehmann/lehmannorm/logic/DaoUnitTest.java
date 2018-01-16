@@ -1,22 +1,21 @@
 package de.lehmann.lehmannorm.logic;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import de.lehmann.lehmannorm.AConnectionMockUnitTest;
+import de.lehmann.lehmannorm.AConnectionUnitTest;
 import de.lehmann.lehmannorm.models.PersonTestEntity;
 import de.lehmann.lehmannorm.models.ReligionTestEntity;
 import de.lehmann.lehmannorm.models.TierTestEntity;
 
-public class DaoUnitTest extends AConnectionMockUnitTest {
+public class DaoUnitTest extends AConnectionUnitTest {
 
     private TierTestEntity               entity;
     private Dao<TierTestEntity, Integer> unitToTest;
 
     @Test
-    @Disabled
     public void testDaoCaching() throws InstantiationException, IllegalAccessException, SQLException {
 
         final TierTestEntity tierA = createNestedEntities();
@@ -36,5 +35,11 @@ public class DaoUnitTest extends AConnectionMockUnitTest {
         tier.setColumnValue(TierTestEntity.BESITZER, person);
 
         return tier;
+    }
+
+    @Override
+    protected Connection createConnection() throws SQLException {
+
+        return null;
     }
 }

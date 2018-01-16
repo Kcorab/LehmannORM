@@ -1,41 +1,19 @@
 package de.lehmann.lehmannorm;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
-import de.lehmann.lehmannorm.models.IDatabaseConnectionInformations;
+public abstract class AConnectionUnitTest {
 
-public abstract class AConnectionUnitTest extends AConnectionTemplate {
+    protected Connection connection;
 
-    private static final IDatabaseConnectionInformations CONNECTION_ACCESS_INFO =
-            IDatabaseConnectionInformations.MARIA_DB;
+    protected abstract Connection createConnection() throws SQLException;
 
-    @Override
-    protected Connection createConnection() throws SQLException {
+    @BeforeEach
+    public void doCreateConnection() throws InstantiationException, IllegalAccessException, SQLException {
 
-        final String databaseUrl = CONNECTION_ACCESS_INFO.getDatabaseUrl()
-                + "/"
-                + CONNECTION_ACCESS_INFO.getDatabaseName()
-                + "?useLegacyDatetimeCode=false&serverTimezone=UTC";
-
-        final Connection connection = DriverManager.getConnection(databaseUrl,
-                CONNECTION_ACCESS_INFO.getDatabaseUserName(), CONNECTION_ACCESS_INFO.getDatabasePassword());
-
-        return connection;
-    }
-
-    @AfterEach
-    public void doDestroyConnection() {
-
-        if (connection != null)
-            try {
-                connection.close();
-            } catch (final SQLException e) {
-
-                connection = null;
-            }
+        connection = createConnection();
     }
 }

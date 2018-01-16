@@ -1,4 +1,4 @@
-package de.lehmann.lehmannorm.mocks;
+package de.lehmann.lehmannorm.stubs;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -23,14 +23,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Calendar;
 
-public class PrepareStatementMock implements PreparedStatement {
-
-    private final String sqlString;
-
-    public PrepareStatementMock(final String sqlString) {
-
-        this.sqlString = sqlString;
-    }
+public class PreparedStatementStub implements PreparedStatement {
 
     @Override
     public ResultSet executeQuery(final String sql) throws SQLException {
@@ -565,12 +558,6 @@ public class PrepareStatementMock implements PreparedStatement {
     @Override
     public void setNClob(final int parameterIndex, final Reader reader) throws SQLException {
 
-    }
-
-    @Override
-    public String toString() {
-
-        return sqlString;
     }
 
 }
