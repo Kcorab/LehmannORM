@@ -45,7 +45,9 @@ public abstract class AbstractEntity<PK> {
 
         entityColumns.put((EntityColumnInfo<Object>) primaryKeyColumnInfo, primaryKeyValue);
 
-        initColumns(entityColumnInfos);
+        for (final EntityColumnInfo<?> entityColumn : entityColumnInfos)
+            entityColumns.put((EntityColumnInfo<Object>) entityColumn, null);
+
     }
 
     // copy constructor
@@ -59,22 +61,6 @@ public abstract class AbstractEntity<PK> {
         sourceEntity.entityColumns.forEach((k, v) -> this.entityColumns.put(k, null));
     }
 
-    // constructor methods
-
-    @SuppressWarnings("unchecked")
-    private void initColumns(final EntityColumnInfo<?>... entityColumnInfos) {
-
-        boolean fillForeignMap = true;
-
-        for (final EntityColumnInfo<?> entityColumn : entityColumnInfos)
-            if (fillForeignMap && entityColumn.columnType.isAssignableFrom(AbstractEntity.class)) {
-                // TODO: handle entity references
-            } else {
-                fillForeignMap = false;
-                entityColumns.put((EntityColumnInfo<Object>) entityColumn, null);
-            }
-    }
-
     // Getter / Setter
 
     public <T> T getColumnValue(final EntityColumnInfo<T> entityColumnInfo) {
@@ -83,14 +69,13 @@ public abstract class AbstractEntity<PK> {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> boolean setColumnValue(final EntityColumnInfo<T> entityColumnInfo, final T entityColumnValue) {
+    public <T> T setColumnValue(final EntityColumnInfo<T> entityColumnInfo, final T entityColumnValue) {
 
-        final boolean success = this.entityColumns.containsKey(entityColumnInfo);
+        if (!this.entityColumns.containsKey(entityColumnInfo))
+            throw new IllegalArgumentException(
+                    "There is no " + entityColumnInfo.columnName + " column for entity type " + this.getClass() + " ");
 
-        if (success)
-            this.entityColumns.put((EntityColumnInfo<Object>) entityColumnInfo, entityColumnValue);
-
-        return success;
+        return (T) this.entityColumns.put((EntityColumnInfo<Object>) entityColumnInfo, entityColumnValue);
     }
 
     public IBoundedColumnMap<Object> getAllColumns() {

@@ -3,6 +3,7 @@ package de.lehmann.lehmannorm.logic;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import de.lehmann.lehmannorm.AConnectionUnitTest;
@@ -15,6 +16,7 @@ public class DaoUnitTest extends AConnectionUnitTest {
     private TierTestEntity               entity;
     private Dao<TierTestEntity, Integer> unitToTest;
 
+    @Disabled
     @Test
     public void testDaoCaching() throws InstantiationException, IllegalAccessException, SQLException {
 
