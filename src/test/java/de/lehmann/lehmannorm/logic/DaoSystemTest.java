@@ -1,14 +1,14 @@
 package de.lehmann.lehmannorm.logic;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -22,10 +22,73 @@ public class DaoSystemTest extends AConnectionUnitTest {
 
     private Dao<AbstractEntity<Integer>, Integer> unitToTest;
 
+    // HELPER METHODS
+
+    /**
+     * Delete the entity if exist manually.
+     *
+     * @param entity
+     *            that should remove from database
+     * @return affected rows
+     * @throws SQLException
+     */
+    private int deleteEntityManuelly(final AbstractEntity<?> entity) throws SQLException {
+
+        try (final Statement deleteStatement = connection.createStatement()) {
+
+            return deleteStatement.executeUpdate(
+                    String.format("DELETE FROM %s WHERE %s = %s",
+                            entity.getTableName(),
+                            entity.getPrimaryKeyInfo().columnName,
+                            entity.getPrimaryKeyValue()));
+        }
+    }
+
+    /**
+     * @param entity
+     *            with primary key value
+     * @param columnCount
+     *            count of wished column values
+     * @return entity column values from database
+     * @throws SQLException
+     */
+    private Object[] findEntityManuelly(final AbstractEntity<?> entity, final int columnCount) throws SQLException {
+
+        try (final Statement selectStatement = connection.createStatement();
+                ResultSet cursor = selectStatement.executeQuery(
+                        String.format("SELECT * FROM %s WHERE %s = %s",
+                                entity.getTableName(),
+                                entity.getPrimaryKeyInfo().columnName,
+                                entity.getPrimaryKeyValue()));) {
+
+            final Object[] columnValues;
+
+            int i = 0;
+
+            if (cursor.next()) {
+                columnValues = new Object[columnCount];
+
+                while (i < columnCount)
+                    columnValues[i++] = cursor.getObject(i);
+            } else
+                columnValues = null;
+
+            return columnValues;
+        }
+    }
+
+    private Object[] findEntityManuelly(final AbstractEntity<?> entity) throws SQLException {
+
+        return findEntityManuelly(entity, 1);
+    }
+
     // TEST PRIVATE METHODS
 
     @Test
-    public void insertEntity() throws SQLException {
+    public void insertEntity() throws SQLException, InstantiationException, IllegalAccessException {
+
+        final Dao<TestEntityA, Integer> unitToTest = Dao.getOrCreateCachedDao(connection, TestEntityA.class);
+        final TestEntityA testEntityA = new TestEntityA();
 
         // Make the private method public for the test.
         Method method = null;
@@ -41,50 +104,31 @@ public class DaoSystemTest extends AConnectionUnitTest {
         try {
 
             final Integer primaryKeyValue = 1;
-            ResultSet cursor;
+            testEntityA.setPrimaryKeyValue(primaryKeyValue);
+
+            final ResultSet cursor;
             // preprocessing
 
             // Delete the entity if exist manually.
-            connection.createStatement().executeUpdate(
-                    String.format("DELETE FROM %s WHERE %s = %s",
-                            TestEntityA.TABLE_NAME,
-                            TestEntityA.ID.columnName,
-                            primaryKeyValue));
+            deleteEntityManuelly(testEntityA);
 
             // Be sure there is no entity with defined id.
-            cursor = connection.createStatement().executeQuery(
-                    String.format("SELECT * FROM %s WHERE %s = %s",
-                            TestEntityA.TABLE_NAME,
-                            TestEntityA.ID.columnName,
-                            primaryKeyValue));
-
-            assertFalse(cursor.next());
-            cursor.close();
+            assertNull(findEntityManuelly(testEntityA));
 
             // Insert the entity by dao.
-
-            final Dao<TestEntityA, Integer> dao = Dao.getOrCreateCachedDao(connection, TestEntityA.class);
-            final TestEntityA testEntityA = new TestEntityA();
 
             testEntityA.setPrimaryKeyValue(primaryKeyValue);
             testEntityA.setColumnValue(TestEntityA.DESCRIPTION, "A test entity.");
 
-            method.invoke(dao, testEntityA);
+            method.invoke(unitToTest, testEntityA);
 
             // postrocessing
 
             // Be sure there is entity with defined id now.
-            cursor = connection.createStatement().executeQuery(
-                    String.format("SELECT * FROM %s WHERE %s = %s",
-                            TestEntityA.TABLE_NAME,
-                            TestEntityA.ID.columnName,
-                            primaryKeyValue));
+            final Object[] columnValues = findEntityManuelly(testEntityA, 2);
 
-            assertTrue(cursor.next());
-            assertEquals(cursor.getObject(1), primaryKeyValue);
-            assertEquals(cursor.getObject(2), "A test entity.");
-
-            cursor.close();
+            assertEquals(columnValues[0], primaryKeyValue);
+            assertEquals(columnValues[1], "A test entity.");
 
         } catch (final Exception e) {
 
