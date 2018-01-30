@@ -11,5 +11,5 @@ public interface IDatabaseConnectionInformations {
     public String getDatabasePassword();
 
     static final IDatabaseConnectionInformations MARIA_DB = new DatabaseConnectionInformations(
-            "jdbc:mysql://127.0.0.1:3306", "SYNTHETIC_HEART", "root", "+");
+            "jdbc:mysql://127.0.0.1:3306", "SYSTEM_TEST", "system_test", "1");
 }
