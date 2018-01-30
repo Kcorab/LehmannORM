@@ -3,6 +3,7 @@ package de.lehmann.lehmannorm;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 public abstract class AConnectionUnitTest {
@@ -14,6 +15,14 @@ public abstract class AConnectionUnitTest {
     @BeforeEach
     public void doCreateConnection() throws InstantiationException, IllegalAccessException, SQLException {
 
-        connection = createConnection();
+        if (connection == null)
+            connection = createConnection();
+    }
+
+    @AfterEach
+    public void doCloseConnection() throws SQLException {
+
+        if (connection != null && !connection.isClosed())
+            connection.close();
     }
 }
