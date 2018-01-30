@@ -2,9 +2,12 @@ package de.lehmann.lehmannorm.logic;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.junit.platform.commons.logging.Logger;
@@ -12,6 +15,7 @@ import org.junit.platform.commons.logging.LoggerFactory;
 
 import de.lehmann.lehmannorm.entity.AbstractEntity;
 import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
+import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo.ForeignKeyHolder;
 import de.lehmann.lehmannorm.logic.sqlbuilder.IStatementBuilder;
 import de.lehmann.lehmannorm.logic.sqlbuilder.IStatementBuilder.DefaultBuilderBundle;
 
@@ -118,5 +122,87 @@ public class Dao<E extends AbstractEntity<PK>, PK> {
             throws InstantiationException, IllegalAccessException, SQLException {
 
         this(connection, entityType.newInstance());
+    }
+
+    @SuppressWarnings("unchecked")
+    private void insertEntity(final E entity) throws SQLException {
+
+        final Set<Entry<EntityColumnInfo<Object>, Object>> entityColumns =
+                entity.getAllColumns().entrySet();
+
+        final Iterator<Entry<EntityColumnInfo<Object>, Object>> iterator =
+                entityColumns.iterator();
+
+        PK primaryKeyValue;
+        Entry<EntityColumnInfo<Object>, ?> entityColumn;
+
+        int columnIndex = 1;
+
+        // PRIMARY KEY
+
+        /*
+         * Because of restrictions and sequence prevention the first column have to be
+         * exist and have to be the primary key.
+         */
+        entityColumn = iterator.next();
+
+        primaryKeyValue = (PK) entityColumn.getValue();
+        this.insertStatement.setObject(columnIndex++, primaryKeyValue);
+
+        // REFERENCE ENTITIES
+
+        // Columns after the primary key column could be reference columns.
+
+        while (iterator.hasNext()) {
+
+            entityColumn = iterator.next();
+            // All generics are calibrated to Object, but the true type is unkown.
+
+            final EntityColumnInfo<?> columnInfo = entityColumn.getKey();
+
+            // Holds the column an reference to another entity?
+            if (AbstractEntity.class.isAssignableFrom(columnInfo.columnType)) {
+
+                // Is there a info about the foreign key?
+                if (ForeignKeyHolder.THIS_ENTITY_TYPE.equals(columnInfo.foreignKeyHolder)) {
+                    // Yes, so the column value have to be a AbstractEntity.
+
+                    final Object refPrimaryKeyValue =
+                            ((AbstractEntity<?>) entityColumn.getValue()).getPrimaryKeyValue();
+
+                    this.insertStatement.setObject(columnIndex++, refPrimaryKeyValue);
+                }
+
+            } else {
+                // It's a primitive column value!
+
+                this.insertStatement.setObject(columnIndex++, entityColumn.getValue());
+
+                /*
+                 * Because of the sequence restriction the following column values couldn't be a
+                 * reference entity and have to be primitive.
+                 */
+                break;
+            }
+        }
+
+        // PRIMITIVE COLUMN VALUES
+
+        while (iterator.hasNext()) {
+
+            entityColumn = iterator.next();
+
+            this.insertStatement.setObject(columnIndex++, entityColumn.getValue());
+        }
+
+        insertStatement.executeUpdate();
+
+        if (entity.getPrimaryKeyValue() == null)
+            try (final ResultSet generatedKeys = this.insertStatement.getGeneratedKeys()) {
+
+                generatedKeys.next();
+                primaryKeyValue = (PK) generatedKeys.getObject(1);
+                entity.setPrimaryKeyValue(primaryKeyValue);
+            }
     }
 }
