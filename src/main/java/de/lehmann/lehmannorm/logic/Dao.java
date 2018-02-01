@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -125,6 +127,137 @@ public class Dao<E extends AbstractEntity<PK>, PK> {
     }
 
     @SuppressWarnings("unchecked")
+    public boolean insert(final E entity) {
+
+        try {
+            connection.setAutoCommit(false);
+        } catch (final SQLException e1) {
+            try {
+                if (!connection.isClosed())
+                    connection.close();
+            } catch (final SQLException e2) {
+            }
+            return false;
+        }
+
+        final Map<EntityColumnInfo<Object>, Object> allColumns = entity.getAllColumns();
+        final Set<Entry<EntityColumnInfo<Object>, Object>> columnKeyValue = allColumns.entrySet();
+
+        // Recursion stack to remember the last data.
+        final Deque<EntityToIteratorAndColumn> recStack = new ArrayDeque<>();
+
+        // Declare data fragments.
+        AbstractEntity<?> currentEntity;
+        Iterator<Entry<EntityColumnInfo<Object>, Object>> columnIteratorOfCurrentEntity;
+        Entry<EntityColumnInfo<Object>, Object> columnInfoAndValue;
+
+        // Declare bundle for the data fragments above.
+        EntityToIteratorAndColumn recInfo;
+
+        // Instantiate data fragments.
+        currentEntity = entity;
+        columnIteratorOfCurrentEntity = columnKeyValue.iterator();
+        columnInfoAndValue = columnIteratorOfCurrentEntity.hasNext() ? columnIteratorOfCurrentEntity.next() : null;
+
+        // Instantiate bundle with the data fragments.
+        recInfo = new EntityToIteratorAndColumn(
+                entity,
+                columnIteratorOfCurrentEntity,
+                columnInfoAndValue);
+
+        try {
+            while (columnInfoAndValue != null) { // for every element on stack
+
+                // As already mentioned the true type is unkown.
+                final EntityColumnInfo<?> columnInfo = columnInfoAndValue.getKey();
+
+                // Is there a reference entity?
+                if (AbstractEntity.class.isAssignableFrom(columnInfo.columnType)) {
+
+                    final AbstractEntity<?> refEntity = (AbstractEntity<?>) columnInfoAndValue.getValue();
+
+                    /*
+                     * Holds the current entity the foreign key? (Is it needed to insert the
+                     * reference entity before current entity?)
+                     */
+                    if (ForeignKeyHolder.THIS_ENTITY_TYPE.equals(columnInfo.foreignKeyHolder)) {
+
+                        // Remember the current entity (and process state) to insert it later.
+                        recStack.push(recInfo);
+
+                        currentEntity = refEntity;
+                        columnIteratorOfCurrentEntity = currentEntity.getAllColumns().entrySet().iterator();
+                        columnInfoAndValue =
+                                columnIteratorOfCurrentEntity.hasNext() ? columnIteratorOfCurrentEntity.next() : null;
+
+                        recInfo = new EntityToIteratorAndColumn(
+                                currentEntity,
+                                columnIteratorOfCurrentEntity,
+                                columnInfoAndValue);
+                    } else {
+
+                        // Remember the reference entity to insert it after the current entity.
+                        recStack.push(new EntityToIteratorAndColumn(refEntity));
+                        columnInfoAndValue =
+                                columnIteratorOfCurrentEntity.hasNext() ? columnIteratorOfCurrentEntity.next() : null;
+                    }
+                } else {
+
+                    final Dao<AbstractEntity<?>, ?> daoForCurrentEntityType =
+                            (Dao<AbstractEntity<?>, ?>) getOrCreateCachedDao(connection, currentEntity.getClass());
+
+                    // no reference entities anymore
+                    // insert the current entity
+                    daoForCurrentEntityType.insertEntity(currentEntity);
+                }
+
+                if (!recStack.isEmpty()) {
+
+                    final EntityToIteratorAndColumn pop = recStack.pop();
+
+                    currentEntity = pop.entity;
+                    columnIteratorOfCurrentEntity = pop.iterator;
+                    columnInfoAndValue = pop.lastColumnFromIterator;
+                }
+            }
+
+        } catch (final RuntimeException | InstantiationException | IllegalAccessException | SQLException e) {
+
+            try {
+                connection.rollback();
+            } catch (final SQLException e1) {
+
+                return false;
+
+            } finally {
+                try {
+                    if (!connection.isClosed())
+                        connection.close();
+                } catch (final SQLException e2) {
+
+                }
+            }
+
+            return false;
+        }
+
+        try {
+            connection.commit();
+        } catch (final SQLException e) {
+            return false;
+        } finally {
+            try {
+                if (!connection.isClosed())
+                    connection.close();
+            } catch (final SQLException e) {
+
+            }
+        }
+
+        return true;
+    }
+
+    @SuppressWarnings("unchecked")
     private void insertEntity(final E entity) throws SQLException {
 
         final Set<Entry<EntityColumnInfo<Object>, Object>> entityColumns =
@@ -204,5 +337,33 @@ public class Dao<E extends AbstractEntity<PK>, PK> {
                 primaryKeyValue = (PK) generatedKeys.getObject(1);
                 entity.setPrimaryKeyValue(primaryKeyValue);
             }
+    }
+
+    //
+
+    private class EntityToIteratorAndColumn {
+
+        public final AbstractEntity<?>                                 entity;
+        public final Iterator<Entry<EntityColumnInfo<Object>, Object>> iterator;
+        public final Entry<EntityColumnInfo<Object>, Object>           lastColumnFromIterator;
+
+        public EntityToIteratorAndColumn(
+                final AbstractEntity<?> entity,
+                final Iterator<Entry<EntityColumnInfo<Object>, Object>> iterator,
+                final Entry<EntityColumnInfo<Object>, Object> lastColumnFromIterator) {
+
+            super();
+            this.entity = entity;
+            this.iterator = iterator;
+            this.lastColumnFromIterator = lastColumnFromIterator;
+        }
+
+        public EntityToIteratorAndColumn(
+                final AbstractEntity<?> entity) {
+
+            this.entity = entity;
+            this.iterator = entity.getAllColumns().entrySet().iterator();
+            this.lastColumnFromIterator = this.iterator.hasNext() ? this.iterator.next() : null;
+        }
     }
 }
