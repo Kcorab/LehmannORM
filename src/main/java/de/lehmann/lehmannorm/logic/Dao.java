@@ -18,6 +18,7 @@ import org.junit.platform.commons.logging.LoggerFactory;
 import de.lehmann.lehmannorm.entity.AbstractEntity;
 import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
 import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo.ForeignKeyHolder;
+import de.lehmann.lehmannorm.entity.structure.IBoundedColumnMap;
 import de.lehmann.lehmannorm.logic.sqlbuilder.IStatementBuilder;
 import de.lehmann.lehmannorm.logic.sqlbuilder.IStatementBuilder.DefaultBuilderBundle;
 
@@ -132,10 +133,12 @@ public class Dao<E extends AbstractEntity<PK>, PK> {
         try {
             connection.setAutoCommit(false);
         } catch (final SQLException e1) {
+            LOGGER.error(e1, () -> "");
             try {
                 if (!connection.isClosed())
                     connection.close();
             } catch (final SQLException e2) {
+                LOGGER.error(e2, () -> "");
             }
             return false;
         }
@@ -151,19 +154,15 @@ public class Dao<E extends AbstractEntity<PK>, PK> {
         Iterator<Entry<EntityColumnInfo<Object>, Object>> columnIteratorOfCurrentEntity;
         Entry<EntityColumnInfo<Object>, Object> columnInfoAndValue;
 
-        // Declare bundle for the data fragments above.
-        EntityToIteratorAndColumn recInfo;
-
         // Instantiate data fragments.
         currentEntity = entity;
         columnIteratorOfCurrentEntity = columnKeyValue.iterator();
-        columnInfoAndValue = columnIteratorOfCurrentEntity.hasNext() ? columnIteratorOfCurrentEntity.next() : null;
 
-        // Instantiate bundle with the data fragments.
-        recInfo = new EntityToIteratorAndColumn(
-                entity,
-                columnIteratorOfCurrentEntity,
-                columnInfoAndValue);
+        // The first column represents already the primary key and have to be exist.
+        columnIteratorOfCurrentEntity.next(); // Jump over primary key.
+
+        columnInfoAndValue =
+                columnIteratorOfCurrentEntity.hasNext() ? columnIteratorOfCurrentEntity.next() : null;
 
         try {
             while (columnInfoAndValue != null) { // for every element on stack
@@ -176,56 +175,96 @@ public class Dao<E extends AbstractEntity<PK>, PK> {
 
                     final AbstractEntity<?> refEntity = (AbstractEntity<?>) columnInfoAndValue.getValue();
 
+                    final IBoundedColumnMap<Object> columns = refEntity.getAllColumns();
+
                     /*
                      * Holds the current entity the foreign key? (Is it needed to insert the
                      * reference entity before current entity?)
                      */
                     if (ForeignKeyHolder.THIS_ENTITY_TYPE.equals(columnInfo.foreignKeyHolder)) {
 
-                        // Remember the current entity (and process state) to insert it later.
-                        recStack.push(recInfo);
+                        if (columns.size() <= 1) {
+                            // No reference entities. Only a one column (primary key) table.
 
-                        currentEntity = refEntity;
-                        columnIteratorOfCurrentEntity = currentEntity.getAllColumns().entrySet().iterator();
-                        columnInfoAndValue =
-                                columnIteratorOfCurrentEntity.hasNext() ? columnIteratorOfCurrentEntity.next() : null;
+                            final Dao daoForCurrentEntityType =
+                                    getOrCreateCachedDao(connection, refEntity.getClass());
 
-                        recInfo = new EntityToIteratorAndColumn(
-                                currentEntity,
-                                columnIteratorOfCurrentEntity,
-                                columnInfoAndValue);
+                            // Insert the reference entity.
+                            daoForCurrentEntityType.insertEntity(refEntity);
+                        } else {
+                            // The reference entity
+
+                            // Remember the current entity (and process state) to insert it later.
+                            recStack.push(new EntityToIteratorAndColumn(currentEntity, columnIteratorOfCurrentEntity));
+
+                            currentEntity = refEntity;
+
+                            columnIteratorOfCurrentEntity = columns.entrySet().iterator();
+
+                            // First column represents the pk. Jump over.
+                            columnIteratorOfCurrentEntity.next();
+                        }
+
                     } else {
-
                         // Remember the reference entity to insert it after the current entity.
-                        recStack.push(new EntityToIteratorAndColumn(refEntity));
-                        columnInfoAndValue =
-                                columnIteratorOfCurrentEntity.hasNext() ? columnIteratorOfCurrentEntity.next() : null;
-                    }
-                } else {
+                        final Iterator<Entry<EntityColumnInfo<Object>, Object>> columnIteratorOfRefEntity =
+                                columns.entrySet().iterator();
 
-                    final Dao<AbstractEntity<?>, ?> daoForCurrentEntityType =
-                            (Dao<AbstractEntity<?>, ?>) getOrCreateCachedDao(connection, currentEntity.getClass());
+                        if (columns.size() > 1)
+                            columnIteratorOfRefEntity.next();
+
+                        recStack.push(new EntityToIteratorAndColumn(refEntity, columnIteratorOfRefEntity));
+
+                    }
+
+                    columnInfoAndValue =
+                            columnIteratorOfCurrentEntity.hasNext() ? columnIteratorOfCurrentEntity.next() : null;
+
+                } else
+                    columnInfoAndValue = null;
+
+                if (columnInfoAndValue == null) {
+
+                    final Dao daoForCurrentEntityType =
+                            getOrCreateCachedDao(connection, currentEntity.getClass());
 
                     // no reference entities anymore
                     // insert the current entity
                     daoForCurrentEntityType.insertEntity(currentEntity);
-                }
 
-                if (!recStack.isEmpty()) {
+                    if (!recStack.isEmpty()) {
 
-                    final EntityToIteratorAndColumn pop = recStack.pop();
+                        final EntityToIteratorAndColumn pop = recStack.pop();
 
-                    currentEntity = pop.entity;
-                    columnIteratorOfCurrentEntity = pop.iterator;
-                    columnInfoAndValue = pop.lastColumnFromIterator;
+                        currentEntity = pop.entity;
+                        columnIteratorOfCurrentEntity = pop.iterator;
+                        columnInfoAndValue =
+                                columnIteratorOfCurrentEntity.hasNext() ? columnIteratorOfCurrentEntity.next() : null;
+
+                        if (columnInfoAndValue == null) {
+                            final Dao daoForCurrentEntityType_ =
+                                    getOrCreateCachedDao(connection, currentEntity.getClass());
+
+                            // no reference entities anymore
+                            // insert the current entity
+                            daoForCurrentEntityType.insertEntity(currentEntity);
+                        }
+
+                    }
                 }
             }
 
-        } catch (final RuntimeException | InstantiationException | IllegalAccessException | SQLException e) {
+        } catch (final RuntimeException | InstantiationException | IllegalAccessException |
+
+                SQLException e) {
+
+            LOGGER.error(e, () -> "");
 
             try {
                 connection.rollback();
             } catch (final SQLException e1) {
+
+                LOGGER.error(e1, () -> "");
 
                 return false;
 
@@ -234,6 +273,8 @@ public class Dao<E extends AbstractEntity<PK>, PK> {
                     if (!connection.isClosed())
                         connection.close();
                 } catch (final SQLException e2) {
+
+                    LOGGER.error(e2, () -> "");
 
                 }
             }
@@ -244,13 +285,16 @@ public class Dao<E extends AbstractEntity<PK>, PK> {
         try {
             connection.commit();
         } catch (final SQLException e) {
+
+            LOGGER.error(e, () -> "");
+
             return false;
         } finally {
             try {
                 if (!connection.isClosed())
                     connection.close();
             } catch (final SQLException e) {
-
+                LOGGER.error(e, () -> "");
             }
         }
 
@@ -341,29 +385,19 @@ public class Dao<E extends AbstractEntity<PK>, PK> {
 
     //
 
-    private class EntityToIteratorAndColumn {
+    private static class EntityToIteratorAndColumn {
 
         public final AbstractEntity<?>                                 entity;
         public final Iterator<Entry<EntityColumnInfo<Object>, Object>> iterator;
-        public final Entry<EntityColumnInfo<Object>, Object>           lastColumnFromIterator;
 
         public EntityToIteratorAndColumn(
                 final AbstractEntity<?> entity,
-                final Iterator<Entry<EntityColumnInfo<Object>, Object>> iterator,
-                final Entry<EntityColumnInfo<Object>, Object> lastColumnFromIterator) {
+                final Iterator<Entry<EntityColumnInfo<Object>, Object>> iterator) {
 
             super();
+
             this.entity = entity;
             this.iterator = iterator;
-            this.lastColumnFromIterator = lastColumnFromIterator;
-        }
-
-        public EntityToIteratorAndColumn(
-                final AbstractEntity<?> entity) {
-
-            this.entity = entity;
-            this.iterator = entity.getAllColumns().entrySet().iterator();
-            this.lastColumnFromIterator = this.iterator.hasNext() ? this.iterator.next() : null;
         }
     }
 }
