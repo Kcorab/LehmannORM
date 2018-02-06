@@ -9,6 +9,9 @@ import org.junit.jupiter.api.BeforeEach;
 
 import de.lehmann.lehmannorm.models.IDatabaseConnectionInformations;
 
+/**
+ * @author Tim Lehmann
+ */
 public abstract class ADatabaseConnectionSystemTest extends AConnectionTest {
 
     private static final IDatabaseConnectionInformations CONNECTION_ACCESS_INFO =

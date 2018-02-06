@@ -1,5 +1,8 @@
 package de.lehmann.lehmannorm.models;
 
+/**
+ * @author Tim Lehmann
+ */
 public interface IDatabaseConnectionInformations {
 
     public String getDatabaseUrl();

@@ -8,6 +8,9 @@ import org.junit.jupiter.api.Test;
 
 import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
 
+/**
+ * @author Tim Lehmann
+ */
 public class EntityUnitTest {
 
     private EntityMock unitToTest;

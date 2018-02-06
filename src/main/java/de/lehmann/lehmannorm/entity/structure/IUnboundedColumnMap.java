@@ -3,8 +3,7 @@ package de.lehmann.lehmannorm.entity.structure;
 import de.lehmann.lehmannorm.common.IndexMap;
 
 /**
- *
- * @author barock
+ * @author Tim Lehmann
  *
  * @param <ECIT>
  *            This is the type that is delegated to the

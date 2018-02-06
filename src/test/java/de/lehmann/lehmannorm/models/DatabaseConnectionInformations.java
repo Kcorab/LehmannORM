@@ -1,5 +1,8 @@
 package de.lehmann.lehmannorm.models;
 
+/**
+ * @author Tim Lehmann
+ */
 public class DatabaseConnectionInformations implements IDatabaseConnectionInformations {
 
     private final String databaseUrl;

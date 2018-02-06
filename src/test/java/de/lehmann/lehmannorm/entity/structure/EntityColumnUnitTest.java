@@ -9,8 +9,9 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
-
+/**
+ * @author Tim Lehmann
+ */
 public class EntityColumnUnitTest {
 
     public Map<EntityColumnInfo<?>, String> map = new LinkedHashMap<>();

@@ -23,7 +23,6 @@ import de.lehmann.lehmannorm.logic.sqlbuilder.IStatementBuilder;
 import de.lehmann.lehmannorm.logic.sqlbuilder.IStatementBuilder.DefaultBuilderBundle;
 
 /**
- *
  * @author Tim Lehmann
  *
  * @param <E>

@@ -3,7 +3,6 @@ package de.lehmann.lehmannorm.entity.structure;
 import java.util.Map;
 
 /**
- *
  * @author Tim Lehmann
  *
  * @param <ECVT>

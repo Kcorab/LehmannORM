@@ -9,6 +9,9 @@ import java.util.Set;
 
 import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
 
+/**
+ * @author Tim Lehmann
+ */
 public class SelectStatementBuilder implements IStatementBuilder {
 
     @Override

@@ -1,7 +1,6 @@
 package de.lehmann.lehmannorm.entity.structure;
 
 /**
- *
  * @author Tim Lehmann
  *
  * @param <ECVT>

@@ -18,6 +18,9 @@ import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo.ForeignKeyHolder;
 import de.lehmann.lehmannorm.stubs.ConnectionStub;
 import de.lehmann.lehmannorm.stubs.PreparedStatementStub;
 
+/**
+ * @author Tim Lehmann
+ */
 public class DaoUnitTest extends AConnectionTest {
 
     // TEST STATIC METHODS

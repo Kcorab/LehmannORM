@@ -10,6 +10,9 @@ import java.util.Set;
 
 import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
 
+/**
+ * @author Tim Lehmann
+ */
 public class InsertStatementBuilder implements IStatementBuilder {
 
     @Override

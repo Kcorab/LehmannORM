@@ -9,6 +9,9 @@ import java.util.Set;
 import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
 import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo.ForeignKeyHolder;
 
+/**
+ * @author Tim Lehmann
+ */
 public interface IStatementBuilder {
 
     PreparedStatement buildStatement(final String tableName, final Set<EntityColumnInfo<Object>> entityColumnInfos,

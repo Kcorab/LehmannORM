@@ -19,6 +19,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
+/**
+ * @author Tim Lehmann
+ */
 public class ConnectionStub implements Connection {
 
     @Override

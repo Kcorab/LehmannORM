@@ -15,6 +15,9 @@ import de.lehmann.lehmannorm.models.TestTableEntity;
 import de.lehmann.lehmannorm.stubs.ConnectionStub;
 import de.lehmann.lehmannorm.stubs.PreparedStatementStub;
 
+/**
+ * @author Tim Lehmann
+ */
 public class DefaultStatementBuilderUnitTest extends AConnectionTest {
 
     private static TestTableEntity entity;

@@ -23,6 +23,9 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Calendar;
 
+/**
+ * @author Tim Lehmann
+ */
 public class PreparedStatementStub implements PreparedStatement {
 
     @Override

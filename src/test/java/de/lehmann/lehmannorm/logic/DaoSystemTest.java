@@ -15,6 +15,9 @@ import de.lehmann.lehmannorm.ADatabaseConnectionSystemTest;
 import de.lehmann.lehmannorm.entity.AbstractEntity;
 import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
 
+/**
+ * @author Tim Lehmann
+ */
 public class DaoSystemTest extends ADatabaseConnectionSystemTest {
 
     private Dao<AbstractEntity<Integer>, Integer> unitToTest;
