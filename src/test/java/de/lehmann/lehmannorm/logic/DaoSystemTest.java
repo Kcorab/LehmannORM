@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -13,12 +11,11 @@ import java.sql.Statement;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import de.lehmann.lehmannorm.AConnectionUnitTest;
+import de.lehmann.lehmannorm.ADatabaseConnectionSystemTest;
 import de.lehmann.lehmannorm.entity.AbstractEntity;
 import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
-import de.lehmann.lehmannorm.models.IDatabaseConnectionInformations;
 
-public class DaoSystemTest extends AConnectionUnitTest {
+public class DaoSystemTest extends ADatabaseConnectionSystemTest {
 
     private Dao<AbstractEntity<Integer>, Integer> unitToTest;
 
@@ -87,6 +84,8 @@ public class DaoSystemTest extends AConnectionUnitTest {
     @Test
     public void insertEntity() throws SQLException, InstantiationException, IllegalAccessException {
 
+        // preprocessing
+
         final Dao<TestEntityA, Integer> unitToTest = Dao.getOrCreateCachedDao(connection, TestEntityA.class);
         final TestEntityA testEntityA = new TestEntityA();
 
@@ -103,11 +102,12 @@ public class DaoSystemTest extends AConnectionUnitTest {
 
         try {
 
-            final Integer primaryKeyValue = 1;
-            testEntityA.setPrimaryKeyValue(primaryKeyValue);
+            // test
 
-            final ResultSet cursor;
-            // preprocessing
+            final Integer primaryKeyValue = 1;
+            final String description = "A test entity.";
+            testEntityA.setPrimaryKeyValue(primaryKeyValue);
+            testEntityA.setColumnValue(TestEntityA.DESCRIPTION, description);
 
             // Delete the entity if exist manually.
             deleteEntityManuelly(testEntityA);
@@ -115,52 +115,19 @@ public class DaoSystemTest extends AConnectionUnitTest {
             // Be sure there is no entity with defined id.
             assertNull(findEntityManuelly(testEntityA));
 
-            // Insert the entity by dao.
-
-            testEntityA.setPrimaryKeyValue(primaryKeyValue);
-            testEntityA.setColumnValue(TestEntityA.DESCRIPTION, "A test entity.");
-
+            // Insert the entity by dao (run the insert algorithm).
             method.invoke(unitToTest, testEntityA);
-
-            // postrocessing
 
             // Be sure there is entity with defined id now.
             final Object[] columnValues = findEntityManuelly(testEntityA, 2);
 
             assertEquals(columnValues[0], primaryKeyValue);
-            assertEquals(columnValues[1], "A test entity.");
+            assertEquals(columnValues[1], description);
 
         } catch (final Exception e) {
 
             Assertions.fail(e);
-        } finally {
-
-            try {
-                connection.close();
-            } catch (final SQLException e) {
-                Assertions.fail(e);
-            }
         }
-    }
-
-    @Override
-    protected Connection createConnection() {
-
-        final IDatabaseConnectionInformations idci = IDatabaseConnectionInformations.MARIA_DB;
-
-        final String connectionString = idci.getDatabaseUrl() + "/" + idci.getDatabaseName() + "?" +
-                "user=" + idci.getDatabaseUserName() + "&" +
-                "password=" + idci.getDatabasePassword();
-
-        Connection connection = null;
-
-        try {
-            connection = DriverManager.getConnection(connectionString);
-        } catch (final SQLException e) {
-            Assertions.fail(e);
-        }
-
-        return connection;
     }
 
     // # MOCKS

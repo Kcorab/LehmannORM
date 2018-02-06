@@ -10,12 +10,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import de.lehmann.lehmannorm.AConnectionUnitTest;
+import de.lehmann.lehmannorm.AConnectionTest;
 import de.lehmann.lehmannorm.models.TestTableEntity;
 import de.lehmann.lehmannorm.stubs.ConnectionStub;
 import de.lehmann.lehmannorm.stubs.PreparedStatementStub;
 
-public class DefaultStatementBuilderUnitTest extends AConnectionUnitTest {
+public class DefaultStatementBuilderUnitTest extends AConnectionTest {
 
     private static TestTableEntity entity;
 

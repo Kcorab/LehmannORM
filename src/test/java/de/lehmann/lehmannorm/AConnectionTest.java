@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
-public abstract class AConnectionUnitTest {
+public abstract class AConnectionTest {
 
     protected Connection connection;
 
@@ -15,8 +15,7 @@ public abstract class AConnectionUnitTest {
     @BeforeEach
     public void doCreateConnection() throws InstantiationException, IllegalAccessException, SQLException {
 
-        if (connection == null)
-            connection = createConnection();
+        connection = createConnection();
     }
 
     @AfterEach
