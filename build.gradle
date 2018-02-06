@@ -21,14 +21,16 @@ configurations {
 
 dependencies {
 
-	ideModules("org.junit.platform:junit-platform-console-standalone:1.0.1")
+	ideModules("org.junit.platform:junit-platform-console-standalone:1.0.3")
             
     compile("mysql:mysql-connector-java:6.0.6")
     compile("org.openjdk.jmh:jmh-core:1.19")
+	compile("org.junit.platform:junit-platform-commons:1.0.3")
     
-    testCompile("org.junit.jupiter:junit-jupiter-params:5.0.1")
-    testCompile("org.junit.jupiter:junit-jupiter-api:5.0.1")
-	testRuntime("org.junit.jupiter:junit-jupiter-engine:5.0.1")
+    testCompile("org.junit.jupiter:junit-jupiter-params:5.0.3")
+    testCompile("org.junit.jupiter:junit-jupiter-api:5.0.3")
+	testRuntime("org.junit.jupiter:junit-jupiter-engine:5.0.3")
+	
 }
 
 task copyIdeModules(type: Copy) {
