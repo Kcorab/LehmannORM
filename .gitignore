@@ -1,5 +1,6 @@
 .gradle/
 .settings/
+.metadata/
 bin/
 gradle/wrapper/gradle-wrapper.jar
 build/
