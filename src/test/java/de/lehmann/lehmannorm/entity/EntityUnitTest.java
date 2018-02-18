@@ -37,7 +37,7 @@ public class EntityUnitTest {
     @Test
     public void setColumnValueNegativ() {
 
-        final EntityColumnInfo<Double> notExistingColumn = new EntityColumnInfo<>("notExistingColumn", Double.class);
+        final EntityColumnInfo<Double> notExistingColumn = new EntityColumnInfo<>("NOT_EXISTING_COLUMN", Double.class);
 
         assertThrows(IllegalArgumentException.class, () -> unitToTest.setColumnValue(notExistingColumn, 2.4));
     };

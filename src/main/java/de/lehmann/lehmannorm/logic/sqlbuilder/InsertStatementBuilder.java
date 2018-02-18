@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Iterator;
 import java.util.Set;
 
 import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
@@ -46,13 +47,15 @@ public class InsertStatementBuilder implements IStatementBuilder {
     @Override
     public String generateStatementTail(final Set<EntityColumnInfo<Object>> entityColumnInfos) {
 
-        final int columnCount = entityColumnInfos.size();
-
         final StringBuilder valuesBuilder;
         valuesBuilder = new StringBuilder("(?");
 
-        for (int i = 1; i < columnCount; i++)
-            valuesBuilder.append(",?");
+        final Iterator<EntityColumnInfo<Object>> iterator = entityColumnInfos.iterator();
+        iterator.next();
+
+        while (iterator.hasNext())
+            if (iterator.next().columnName != null)
+                valuesBuilder.append(",?");
 
         valuesBuilder.append(")");
 

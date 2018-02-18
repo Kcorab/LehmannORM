@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import de.lehmann.lehmannorm.AConnectionTest;
 import de.lehmann.lehmannorm.entity.AbstractEntity;
 import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
-import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo.ForeignKeyHolder;
 import de.lehmann.lehmannorm.stubs.ConnectionStub;
 import de.lehmann.lehmannorm.stubs.PreparedStatementStub;
 
@@ -191,7 +190,7 @@ public class DaoUnitTest extends AConnectionTest {
 
         public final static EntityColumnInfo<Integer>        ID   = new EntityColumnInfo<>("ID", Integer.class);
         public final static EntityColumnInfo<TestEntityB_1A> ID_B =
-                new EntityColumnInfo<>("ID_B", TestEntityB_1A.class, ForeignKeyHolder.THIS_ENTITY_TYPE);
+                new EntityColumnInfo<>("ID_B", TestEntityB_1A.class);
 
         protected TestEntityA_1A() {
             super(ID, ID_B);
@@ -207,7 +206,7 @@ public class DaoUnitTest extends AConnectionTest {
 
         public final static EntityColumnInfo<Integer>        ID   = new EntityColumnInfo<>("ID", Integer.class);
         public final static EntityColumnInfo<TestEntityC_1A> ID_C =
-                new EntityColumnInfo<>("ID_C", TestEntityC_1A.class, ForeignKeyHolder.THIS_ENTITY_TYPE);
+                new EntityColumnInfo<>("ID_C", TestEntityC_1A.class);
 
         protected TestEntityB_1A() {
             super(ID, ID_C);
@@ -245,9 +244,9 @@ public class DaoUnitTest extends AConnectionTest {
 
         public final static EntityColumnInfo<Integer>        ID   = new EntityColumnInfo<>("ID", Integer.class);
         public final static EntityColumnInfo<TestEntityB_1B> ID_B =
-                new EntityColumnInfo<>("ID_B", TestEntityB_1B.class, ForeignKeyHolder.THIS_ENTITY_TYPE);
+                new EntityColumnInfo<>("ID_B", TestEntityB_1B.class);
         public final static EntityColumnInfo<TestEntityC_1B> ID_C =
-                new EntityColumnInfo<>("ID_C", TestEntityC_1B.class, ForeignKeyHolder.THIS_ENTITY_TYPE);
+                new EntityColumnInfo<>("ID_C", TestEntityC_1B.class);
 
         protected TestEntityA_1B() {
             super(ID, ID_B, ID_C);

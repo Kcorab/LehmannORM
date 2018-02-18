@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.Set;
 
 import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
-import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo.ForeignKeyHolder;
 
 /**
  * @author Tim Lehmann
@@ -36,20 +35,18 @@ public interface IStatementBuilder {
         // Put all column names in a string.
 
         columnsBuilder = new StringBuilder(it.next().columnName);
+
         while (it.hasNext()) {
+
             final EntityColumnInfo<?> entityColumnInfo = it.next();
 
-            /*
-             * EntityColumnInfo ensures that only if the column value type is an entity
-             * there is an foreign key holder.
-             *
-             * So, only add the column name to the builder if the entity column info
-             * represents a primitive value type or the foreign key for the referenced
-             * entity is hold by this entity.
-             */
-            if (entityColumnInfo.foreignKeyHolder == null
-                    || entityColumnInfo.foreignKeyHolder == ForeignKeyHolder.THIS_ENTITY_TYPE)
+            if (entityColumnInfo.columnName != null)
                 columnsBuilder.append(",").append(entityColumnInfo.columnName);
+
+            /*
+             * If columnName is null the entity references to another entity in object model
+             * but in relation model the other entity holds the foreign key for this entity.
+             */
         }
 
         return columnsBuilder.toString();

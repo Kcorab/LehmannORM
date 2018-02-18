@@ -1,6 +1,10 @@
 package de.lehmann.lehmannorm.entity.structure;
 
 import java.util.Objects;
+import java.util.regex.Pattern;
+
+import org.junit.platform.commons.logging.Logger;
+import org.junit.platform.commons.logging.LoggerFactory;
 
 import de.lehmann.lehmannorm.entity.AbstractEntity;
 
@@ -12,51 +16,55 @@ import de.lehmann.lehmannorm.entity.AbstractEntity;
  */
 public class EntityColumnInfo<ECVT> {
 
-    public final String           columnName;
-    public final Class<ECVT>      columnType;
-    public final ForeignKeyHolder foreignKeyHolder;
+    private static final Logger  LOGGER         = LoggerFactory.getLogger(EntityColumnInfo.class);
+    private static final Pattern COLUMN_PATTERN = Pattern.compile("^[A-Z_]+$");
+
+    public final String      columnName;
+    public final Class<ECVT> columnType;
 
     /**
-     * Use this constructor for referenced entities.
-     *
-     * @param columnName
-     * @param columnType
-     * @param foreignKeyHolder
-     */
-    public EntityColumnInfo(final String columnName, final Class<ECVT> columnType,
-            final ForeignKeyHolder foreignKeyHolder) {
-        super();
-
-        if (columnName.length() == 0)
-            throw new IllegalArgumentException("An empty column name isn't allowed!");
-
-        if (AbstractEntity.class.isAssignableFrom(columnType)) {
-
-            if (foreignKeyHolder == null)
-                throw new IllegalArgumentException(
-                        "There have to be the information about the entity which holds the foreign key.");
-
-        } else if (foreignKeyHolder != null)
-            throw new IllegalArgumentException(
-                    "It is not allowed to add an foreign key information for a primitive column value type because it makes no sense.");
-
-        this.columnName = columnName;
-        this.columnType = columnType;
-        this.foreignKeyHolder = foreignKeyHolder;
-    }
-
-    /**
-     * Use this constructor for primitive column value types.
-     *
      * @param columnName
      * @param columnType
      */
     public EntityColumnInfo(final String columnName, final Class<ECVT> columnType) {
-        this(columnName, columnType, null);
+        super();
+
+        if (columnType == null)
+            throw new IllegalArgumentException(
+                    "There have to be a type information. The usage of null is disallowed.");
+
+        if (!AbstractEntity.class.isAssignableFrom(columnType)) {
+
+            if (columnName == null)
+                throw new IllegalArgumentException(
+                        "There have to be a column name for the column. The usage of null is disallowed. ");
+
+            if (!COLUMN_PATTERN.matcher(columnName).find())
+                throw new IllegalArgumentException(
+                        "The column name have to match \"^[A-Z_]+$\".");
+        }
+
+        this.columnName = columnName;
+        this.columnType = columnType;
+    }
+
+    /**
+     * Use this constructor for a reference entity whose table stores the foreign
+     * key for the table behind this entity.
+     *
+     * @param columnType
+     *            assignable from {@link AbstractEntity}
+     */
+    public EntityColumnInfo(final Class<ECVT> columnType) {
+        this(null, columnType);
     }
 
     @Override
     public int hashCode() {
+
+        if (columnName == null)
+            return 0;
+
         return columnName.hashCode();
     }
 
@@ -71,22 +79,9 @@ public class EntityColumnInfo<ECVT> {
             final EntityColumnInfo<?> other = (EntityColumnInfo<?>) obj;
 
             return Objects.equals(this.columnName, other.columnName)
-                    && Objects.equals(this.columnType, other.columnType)
-                    && Objects.equals(this.foreignKeyHolder, other.foreignKeyHolder);
+                    && Objects.equals(this.columnType, other.columnType);
         }
 
         return false;
-    }
-
-    /**
-     * Information about the entity type which holds the foreign key information.
-     *
-     * @author barock
-     */
-    public enum ForeignKeyHolder {
-
-        THIS_ENTITY_TYPE, // 1 to 1
-        REFERENCED_ENTITY_TYPE, // 1 to 1, 1 to many or many to 1
-        THIRD_ENTITY_TYPE // many to many
     }
 }
