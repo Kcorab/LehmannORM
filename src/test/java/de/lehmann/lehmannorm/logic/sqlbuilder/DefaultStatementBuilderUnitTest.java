@@ -11,7 +11,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import de.lehmann.lehmannorm.AConnectionTest;
-import de.lehmann.lehmannorm.models.TestTableEntity;
+import de.lehmann.lehmannorm.entity.AbstractEntity;
+import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
 import de.lehmann.lehmannorm.stubs.ConnectionStub;
 import de.lehmann.lehmannorm.stubs.PreparedStatementStub;
 
@@ -20,15 +21,15 @@ import de.lehmann.lehmannorm.stubs.PreparedStatementStub;
  */
 public class DefaultStatementBuilderUnitTest extends AConnectionTest {
 
-    private static TestTableEntity entity;
+    private static TestEntityA entity;
 
     @BeforeAll
     public static void createExampleEntity() throws InstantiationException, IllegalAccessException, SQLException {
 
-        entity = new TestTableEntity();
+        entity = new TestEntityA();
         entity.setPrimaryKeyValue(6);
-        entity.setColumnValue(TestTableEntity.NUMBER, 1d);
-        entity.setColumnValue(TestTableEntity.DESCRIPTION, "Eine andere Beschreibung.");
+        entity.setColumnValue(TestEntityA.NUMBER, 1d);
+        entity.setColumnValue(TestEntityA.DESCRIPTION, "desciption");
     }
 
     public static Object[][] parameters() {
@@ -40,10 +41,10 @@ public class DefaultStatementBuilderUnitTest extends AConnectionTest {
 
         return new Object[][] { {
                 insertStatementBuilder,
-                "INSERT INTO TEST_TABLE(ID,NUMBER,DESCRIPTION) VALUES(?,?,?);"
+                "INSERT INTO TEST_ENTITY_A(ID,NUMBER,DESCRIPTION) VALUES(?,?,?);"
         }, {
                 selectStatementBuilder,
-                "SELECT ID,NUMBER,DESCRIPTION FROM TEST_TABLE WHERE ID=?;"
+                "SELECT ID,NUMBER,DESCRIPTION FROM TEST_ENTITY_A WHERE ID=?;"
         } };
     }
 
@@ -65,9 +66,9 @@ public class DefaultStatementBuilderUnitTest extends AConnectionTest {
         return new ConnectionMock();
     }
 
-    /*********
-     * MOCKs *
-     *********/
+    // # MOCKS
+
+    // ## BEHAVIOR MOCKS
 
     private static class ConnectionMock extends ConnectionStub {
 
@@ -97,6 +98,46 @@ public class DefaultStatementBuilderUnitTest extends AConnectionTest {
         public String toString() {
 
             return sqlString;
+        }
+    }
+
+    // ## DATA MOCKS
+
+    private static class TestEntityA extends AbstractEntity<Integer> {
+
+        public final static String                    TABLE_NAME = "TEST_ENTITY_A";
+        public final static EntityColumnInfo<Integer> ID         = new EntityColumnInfo<>("ID", Integer.class);
+        // The next value has no column name because the foreign key is stored by the
+        // referenced entity.
+        public final static EntityColumnInfo<TestEntityB> REF_ID      = new EntityColumnInfo<>(TestEntityB.class);
+        public final static EntityColumnInfo<Double>      NUMBER      = new EntityColumnInfo<>("NUMBER", Double.class);
+        public final static EntityColumnInfo<String>      DESCRIPTION =
+                new EntityColumnInfo<>("DESCRIPTION", String.class);
+
+        public TestEntityA() {
+            super(ID, REF_ID, NUMBER, DESCRIPTION);
+        }
+
+        @Override
+        public String getTableName() {
+            return TABLE_NAME;
+        }
+    }
+
+    private static class TestEntityB extends AbstractEntity<Integer> {
+
+        public final static String                        TABLE_NAME = "TEST_ENTITY_B";
+        public final static EntityColumnInfo<Integer>     ID         = new EntityColumnInfo<>("ID", Integer.class);
+        public final static EntityColumnInfo<TestEntityA> REF_ID     =
+                new EntityColumnInfo<>("REF_ID", TestEntityA.class);
+
+        public TestEntityB() {
+            super(ID, REF_ID);
+        }
+
+        @Override
+        public String getTableName() {
+            return TABLE_NAME;
         }
     }
 }
