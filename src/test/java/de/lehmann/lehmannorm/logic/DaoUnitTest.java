@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import de.lehmann.lehmannorm.AConnectionTest;
@@ -55,6 +56,7 @@ public class DaoUnitTest extends AConnectionTest {
      * insert order: C, B, A
      */
     @Test
+    @Disabled
     public void insert1A() throws InstantiationException, IllegalAccessException, SQLException {
 
         final Dao<TestEntityA_1A, Integer> unitToTest =
@@ -88,6 +90,7 @@ public class DaoUnitTest extends AConnectionTest {
      * insert order: B, C, A
      */
     @Test
+    @Disabled
     public void insert1B() throws InstantiationException, IllegalAccessException, SQLException {
 
         final Dao<TestEntityA_1B, Integer> unitToTest =

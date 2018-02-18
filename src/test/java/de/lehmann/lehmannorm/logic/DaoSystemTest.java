@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import de.lehmann.lehmannorm.ADatabaseConnectionSystemTest;
@@ -85,6 +86,7 @@ public class DaoSystemTest extends ADatabaseConnectionSystemTest {
     // TEST PRIVATE METHODS
 
     @Test
+    @Disabled
     public void insertEntity() throws SQLException, InstantiationException, IllegalAccessException {
 
         // preprocessing
