@@ -62,10 +62,28 @@ public class EntityColumnInfo<ECVT> {
     @Override
     public int hashCode() {
 
-        if (columnName == null)
-            return 0;
+        final int prime = 31;
+        int result = 1;
 
-        return columnName.hashCode();
+        final int hc;
+        /*
+         * Currently this is a dirty solution because it breaks an architecture
+         * principle and it appears hacked at all.
+         */
+        if (columnName == null || AbstractEntity.class.isAssignableFrom(columnType)) {
+            LOGGER.debug(() -> "Ignore columnName.");
+            /*
+             * The columnName have to be ignore because there can only be one column
+             * with an column value for this specific type that extend the AbstractEntity.
+             */
+            hc = 0;
+        } else
+            hc = columnName.hashCode();
+
+        result = prime * result + hc;
+        result = prime * result + columnType.hashCode();
+
+        return result;
     }
 
     @Override
@@ -78,8 +96,13 @@ public class EntityColumnInfo<ECVT> {
 
             final EntityColumnInfo<?> other = (EntityColumnInfo<?>) obj;
 
-            return Objects.equals(this.columnName, other.columnName)
-                    && Objects.equals(this.columnType, other.columnType);
+            /*
+             * Currently this is a dirty solution because it breaks an architecture
+             * principle and it appears hacked at all.
+             */
+            return Objects.equals(this.columnType, other.columnType)
+                    && (AbstractEntity.class.isAssignableFrom(this.columnType)
+                            || Objects.equals(this.columnName, other.columnName));
         }
 
         return false;

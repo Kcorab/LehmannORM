@@ -1,5 +1,8 @@
 package de.lehmann.lehmannorm.entity;
 
+import org.junit.platform.commons.logging.Logger;
+import org.junit.platform.commons.logging.LoggerFactory;
+
 import de.lehmann.lehmannorm.entity.structure.ColumnMap;
 import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
 import de.lehmann.lehmannorm.entity.structure.IBoundedColumnMap;
@@ -11,6 +14,8 @@ import de.lehmann.lehmannorm.entity.structure.IBoundedColumnMap;
  *            type of primary key (value)
  */
 public abstract class AbstractEntity<PK> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractEntity.class);
 
     private final EntityColumnInfo<PK>      primaryKeyInfo;
     private final IBoundedColumnMap<Object> entityColumns;
@@ -71,11 +76,50 @@ public abstract class AbstractEntity<PK> {
     @SuppressWarnings("unchecked")
     public <T> T setColumnValue(final EntityColumnInfo<T> entityColumnInfo, final T entityColumnValue) {
 
+        LOGGER.info(() -> "not so specific");
+
+        return (T) setColumnValueGeneric(entityColumnInfo, entityColumnValue);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends AbstractEntity<?>> T setColumnValue(final EntityColumnInfo<T> entityColumnInfo,
+            final T newRefEntity, final boolean removeOldEntity) {
+
+        LOGGER.info(() -> "specific");
+
+        /*
+         * If the EntityColumnInfo stores a type that extends AbstractEntity then the
+         * columnName will ignore by hashCode() and equals(...). So, we are able to
+         * override the old value (AbstractEntity) by the key (EntityColumnInfo) without
+         * knowing the contingent columName.
+         */
+        final EntityColumnInfo<?> eci = new EntityColumnInfo<>(this.getClass());
+
+        final T oldRefEntity = (T) setColumnValueGeneric(entityColumnInfo, newRefEntity);
+
+        if (oldRefEntity != null && removeOldEntity)
+            ((AbstractEntity<?>) oldRefEntity).setColumnValueGeneric(eci, null);
+
+        if (newRefEntity != null)
+            ((AbstractEntity<?>) newRefEntity).setColumnValueGeneric(eci, this);
+
+        return oldRefEntity;
+    }
+
+    public <T extends AbstractEntity<?>> T setColumnValue(final EntityColumnInfo<T> entityColumnInfo,
+            final T newRefEntity) {
+
+        return setColumnValue(entityColumnInfo, newRefEntity, false);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Object setColumnValueGeneric(final EntityColumnInfo<?> entityColumnInfo, final Object entityColumnValue) {
+
         if (!this.entityColumns.containsKey(entityColumnInfo))
             throw new IllegalArgumentException(
                     "There is no " + entityColumnInfo.columnName + " column for entity type " + this.getClass() + " ");
 
-        return (T) this.entityColumns.put((EntityColumnInfo<Object>) entityColumnInfo, entityColumnValue);
+        return entityColumns.put((EntityColumnInfo<Object>) entityColumnInfo, entityColumnValue);
     }
 
     public IBoundedColumnMap<Object> getAllColumns() {
