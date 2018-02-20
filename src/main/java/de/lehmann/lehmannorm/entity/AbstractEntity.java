@@ -76,7 +76,7 @@ public abstract class AbstractEntity<PK> {
     @SuppressWarnings("unchecked")
     public <T> T setColumnValue(final EntityColumnInfo<T> entityColumnInfo, final T entityColumnValue) {
 
-        LOGGER.info(() -> "not so specific");
+        LOGGER.debug(() -> "Column value is a primitive.");
 
         return (T) setColumnValueGeneric(entityColumnInfo, entityColumnValue);
     }
@@ -85,7 +85,7 @@ public abstract class AbstractEntity<PK> {
     public <T extends AbstractEntity<?>> T setColumnValue(final EntityColumnInfo<T> entityColumnInfo,
             final T newRefEntity, final boolean removeOldEntity) {
 
-        LOGGER.info(() -> "specific");
+        LOGGER.debug(() -> "Column value is a reference entity.");
 
         /*
          * If the EntityColumnInfo stores a type that extends AbstractEntity then the
