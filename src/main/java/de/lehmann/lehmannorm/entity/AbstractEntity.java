@@ -117,7 +117,10 @@ public abstract class AbstractEntity<PK> {
 
         if (!this.entityColumns.containsKey(entityColumnInfo))
             throw new IllegalArgumentException(
-                    "There is no " + entityColumnInfo.columnName + " column for entity type " + this.getClass() + " ");
+                    "There is no column with name \"" + entityColumnInfo.columnName + "\" and type "
+                            + entityColumnInfo.columnType.getSimpleName() + " for entity type "
+                            + this.getClass().getSimpleName() + ". You may forgot to add the information about "
+                            + entityColumnInfo.columnType.getSimpleName() + ".");
 
         return entityColumns.put((EntityColumnInfo<Object>) entityColumnInfo, entityColumnValue);
     }

@@ -3,8 +3,12 @@ package de.lehmann.lehmannorm.logic;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.junit.platform.commons.logging.Logger;
@@ -121,6 +125,140 @@ public class Dao<E extends AbstractEntity<PK>, PK> {
 
     public boolean insert(final E entity) {
 
-        throw new UnsupportedOperationException("Will revise");
+        return insert(entity, null);
+    }
+
+    private boolean insert(final E entity, final AbstractEntity<?> triggerdEntity) {
+
+        try {
+            connection.setAutoCommit(false);
+        } catch (final SQLException e1) {
+            LOGGER.error(e1, () -> "");
+            try {
+                if (!connection.isClosed())
+                    connection.close();
+            } catch (final SQLException e2) {
+                LOGGER.error(e2, () -> "");
+            }
+            return false;
+        }
+
+        try {
+            insertEntity(entity, triggerdEntity);
+        } catch (final RuntimeException | InstantiationException | IllegalAccessException |
+
+                SQLException e) {
+
+            LOGGER.error(e, () -> "");
+
+            try {
+                connection.rollback();
+            } catch (final SQLException e1) {
+
+                LOGGER.error(e1, () -> "");
+
+                return false;
+
+            } finally {
+                try {
+                    if (!connection.isClosed())
+                        connection.close();
+                } catch (final SQLException e2) {
+
+                    LOGGER.error(e2, () -> "");
+
+                }
+            }
+
+            return false;
+        }
+
+        try {
+            connection.commit();
+        } catch (final SQLException e) {
+
+            LOGGER.error(e, () -> "");
+
+            return false;
+        } finally {
+            try {
+                if (!connection.isClosed())
+                    connection.close();
+            } catch (final SQLException e) {
+                LOGGER.error(e, () -> "");
+            }
+        }
+
+        return false;
+
+    }
+
+    @SuppressWarnings({ "unchecked" })
+    private void insertEntity(final E entity, final AbstractEntity<?> triggerdEntity)
+            throws InstantiationException, IllegalAccessException, SQLException {
+
+        final Map<EntityColumnInfo<Object>, Object> allColumns = entity.getAllColumns();
+        final Set<Entry<EntityColumnInfo<Object>, Object>> columnKeyValue = allColumns.entrySet();
+
+        Iterator<Entry<EntityColumnInfo<Object>, Object>> columnIteratorOfCurrentEntity;
+        Entry<EntityColumnInfo<Object>, Object> columnInfoAndValue;
+
+        columnIteratorOfCurrentEntity = columnKeyValue.iterator();
+
+        // Recursion stack to remember the last data.
+        final Deque<AbstractEntity<?>> recStack = new ArrayDeque<>();
+
+        int paramIndex = 1;
+        // The first column represents already the primary key and have to be exist.
+        columnInfoAndValue = columnIteratorOfCurrentEntity.next();
+
+        this.insertStatement.setObject(paramIndex++, columnInfoAndValue.getValue());
+
+        while (columnIteratorOfCurrentEntity.hasNext()) {
+
+            columnInfoAndValue = columnIteratorOfCurrentEntity.next();
+
+            // As already mentioned the true type is unkown.
+            final EntityColumnInfo<?> columnInfo = columnInfoAndValue.getKey();
+
+            // Is there a reference entity?
+            if (AbstractEntity.class.isAssignableFrom(columnInfo.columnType)) {
+
+                final AbstractEntity<?> refEntity = (AbstractEntity<?>) columnInfoAndValue.getValue();
+
+                /*
+                 * Holds the current entity the foreign key? =>
+                 * Is it needed to insert the reference entity before current entity?
+                 */
+                if (columnInfo.columnName != null) { // Yes.
+
+                    // Insert the reference entity firstly.
+                    if (refEntity != null) {
+
+                        if (refEntity != triggerdEntity)
+                            getOrCreateCachedDao(connection, refEntity.getClass()).insert(refEntity, entity);
+
+                        this.insertStatement.setObject(paramIndex++, refEntity.getPrimaryKeyValue());
+
+                    } else
+                        this.insertStatement.setObject(paramIndex++, null);
+
+                } else if (refEntity != triggerdEntity) // No, so check that we don't come from the refEntity.
+                    // Remember to insert it after the current entity.
+                    recStack.push(refEntity);
+
+            } else
+                while (columnIteratorOfCurrentEntity.hasNext())
+                    this.insertStatement.setObject(paramIndex++, columnIteratorOfCurrentEntity.next().getValue());
+        }
+
+        while (!recStack.isEmpty()) {
+
+            final AbstractEntity<?> pop = recStack.pop();
+
+            getOrCreateCachedDao(connection, pop.getClass()).insert(pop, entity);
+        }
+
+        this.insertStatement.execute();
     }
 }
