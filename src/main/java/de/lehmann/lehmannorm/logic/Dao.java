@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -208,48 +209,34 @@ public class Dao<E extends AbstractEntity<PK>, PK> {
         // Recursion stack to remember the last data.
         final Deque<AbstractEntity<?>> recStack = new ArrayDeque<>();
 
-        int paramIndex = 1;
+        final int[] paramIndex = { 1 };
         // The first column represents already the primary key and have to be exist.
         columnInfoAndValue = columnIteratorOfCurrentEntity.next();
 
-        this.insertStatement.setObject(paramIndex++, columnInfoAndValue.getValue());
+        this.insertStatement.setObject(paramIndex[0]++, columnInfoAndValue.getValue());
 
         while (columnIteratorOfCurrentEntity.hasNext()) {
 
             columnInfoAndValue = columnIteratorOfCurrentEntity.next();
 
-            // As already mentioned the true type is unkown.
+            // As already mentioned the true type is unknown.
             final EntityColumnInfo<?> columnInfo = columnInfoAndValue.getKey();
 
-            // Is there a reference entity?
-            if (AbstractEntity.class.isAssignableFrom(columnInfo.columnType)) {
+            // Is there a reference entity at least?
 
-                final AbstractEntity<?> refEntity = (AbstractEntity<?>) columnInfoAndValue.getValue();
+            // ONE TO ONE
+            if (AbstractEntity.class.isAssignableFrom(columnInfo.columnType))
 
-                /*
-                 * Holds the current entity the foreign key? =>
-                 * Is it needed to insert the reference entity before current entity?
-                 */
-                if (columnInfo.columnName != null) { // Yes.
+                this.insertOneToOne(entity, triggerdEntity, columnInfoAndValue, columnInfo, paramIndex, recStack);
 
-                    // Insert the reference entity firstly.
-                    if (refEntity != null) {
+            // ONE TO MANY
+            else if (Collection.class.isAssignableFrom(columnInfo.columnType))
 
-                        if (refEntity != triggerdEntity)
-                            getOrCreateCachedDao(connection, refEntity.getClass()).insert(refEntity, entity);
+                this.insertOneToMany();
 
-                        this.insertStatement.setObject(paramIndex++, refEntity.getPrimaryKeyValue());
-
-                    } else
-                        this.insertStatement.setObject(paramIndex++, null);
-
-                } else if (refEntity != triggerdEntity) // No, so check that we don't come from the refEntity.
-                    // Remember to insert it after the current entity.
-                    recStack.push(refEntity);
-
-            } else
+            else
                 while (columnIteratorOfCurrentEntity.hasNext())
-                    this.insertStatement.setObject(paramIndex++, columnIteratorOfCurrentEntity.next().getValue());
+                    this.insertStatement.setObject(paramIndex[0]++, columnIteratorOfCurrentEntity.next().getValue());
         }
 
         while (!recStack.isEmpty()) {
@@ -261,4 +248,47 @@ public class Dao<E extends AbstractEntity<PK>, PK> {
 
         this.insertStatement.execute();
     }
+
+    private void insertOneToOne(
+            final E entity,
+            final AbstractEntity<?> triggerdEntity,
+            final Entry<EntityColumnInfo<Object>, Object> columnInfoAndValue,
+            final EntityColumnInfo<?> columnInfo,
+            final int[] paramIndex,
+            final Deque<AbstractEntity<?>> recStack)
+            throws InstantiationException, IllegalAccessException, SQLException {
+
+        final AbstractEntity<?> refEntity = (AbstractEntity<?>) columnInfoAndValue.getValue();
+
+        /*
+         * Holds the current entity the foreign key? =>
+         * Is it needed to insert the reference entity before current entity?
+         */
+        if (columnInfo.columnName != null) { // Yes.
+
+            // Insert the reference entity firstly.
+            if (refEntity != null) {
+
+                if (refEntity != triggerdEntity)
+                    getOrCreateCachedDao(connection, refEntity.getClass()).insert(refEntity, entity);
+
+                this.insertStatement.setObject(paramIndex[0]++, refEntity.getPrimaryKeyValue());
+
+            } else
+                this.insertStatement.setObject(paramIndex[0]++, null);
+
+        } else if (refEntity != triggerdEntity) // No, so check that we don't come from the refEntity.
+            // Remember to insert it after the current entity.
+            recStack.push(refEntity);
+
+    }
+
+    private void insertManyToOne() {
+
+    }
+
+    private void insertOneToMany() {
+
+    }
+
 }
