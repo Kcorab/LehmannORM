@@ -20,27 +20,80 @@ public abstract class AbstractEntity<PK> {
     private final EntityColumnInfo<PK>      primaryKeyInfo;
     private final IBoundedColumnMap<Object> entityColumns;
 
-    // Constructors
+    // delegate constructors
 
+    /**
+     * Construct an entity instance with default name "ID" for primary key column
+     * and without a default value for the primary key.
+     *
+     * @param primaryKeyType
+     *            type of the primary key
+     * @param entityColumnInfos
+     *            columns of this entity
+     */
     protected AbstractEntity(final Class<PK> primaryKeyType, final EntityColumnInfo<?>... entityColumnInfos) {
-        this(new EntityColumnInfo<>("ID", primaryKeyType), entityColumnInfos);
+        this(primaryKeyType, "ID", entityColumnInfos);
     }
 
+    /**
+     * Construct an entity instance without a default value for the primary key.
+     *
+     * @param primaryKeyType
+     *            type of the primary key
+     * @param primaryKeyName
+     *            name of primary key column
+     * @param entityColumnInfos
+     *            columns of this entity
+     */
     protected AbstractEntity(final Class<PK> primaryKeyType, final String primaryKeyName,
             final EntityColumnInfo<?>... entityColumnInfos) {
         this(primaryKeyType, primaryKeyName, null, entityColumnInfos);
     }
 
+    /**
+     * Construct an entity instance.
+     *
+     * @param primaryKeyType
+     *            type of the primary key
+     * @param primaryKeyName
+     *            name of primary key column
+     * @param primaryKeyValue
+     *            value of primary key
+     * @param entityColumnInfos
+     *            columns of this entity
+     */
     protected AbstractEntity(final Class<PK> primaryKeyType, final String primaryKeyName,
             final PK primaryKeyValue, final EntityColumnInfo<?>... entityColumnInfos) {
-        this(new EntityColumnInfo<>(primaryKeyName, primaryKeyType), primaryKeyValue);
+        this(new EntityColumnInfo<>(primaryKeyName, primaryKeyType), primaryKeyValue, entityColumnInfos);
     }
 
+    /**
+     * Construct an entity instance without a default value for the primary key.
+     *
+     * @param primaryKeyInfo
+     *            encapsulated variant for name of primary key column and for type
+     *            of the primary key
+     * @param entityColumnInfos
+     *            columns of this entity
+     */
     protected AbstractEntity(final EntityColumnInfo<PK> primaryKeyInfo,
             final EntityColumnInfo<?>... entityColumnInfos) {
         this(primaryKeyInfo, null, entityColumnInfos);
     }
 
+    // master constructor
+
+    /**
+     * Construct an entity instance.
+     *
+     * @param primaryKeyInfo
+     *            encapsulated variant for name of primary key column and for type
+     *            of the primary key
+     * @param primaryKeyValue
+     *            value of primary key
+     * @param entityColumnInfos
+     *            columns of this entity
+     */
     @SuppressWarnings("unchecked")
     protected AbstractEntity(final EntityColumnInfo<PK> primaryKeyColumnInfo, final PK primaryKeyValue,
             final EntityColumnInfo<?>... entityColumnInfos) {
@@ -52,27 +105,47 @@ public abstract class AbstractEntity<PK> {
 
         for (final EntityColumnInfo<?> entityColumn : entityColumnInfos)
             entityColumns.put((EntityColumnInfo<Object>) entityColumn, null);
-
     }
 
     // copy constructor
 
+    /**
+     * Construct an entity instance by existing instance. Cautions: Column values
+     * aren't applied.
+     *
+     * @param sourceEntity
+     *            entity instance copy from
+     */
     public AbstractEntity(final AbstractEntity<PK> sourceEntity) {
 
         this.primaryKeyInfo = sourceEntity.primaryKeyInfo;
         this.entityColumns = new ColumnMap<>(sourceEntity.entityColumns.size());
 
-        // Copy all immutable values of type EntityColumn to this entryset.
+        // Copy all immutable values of type EntityColumn to this entry set.
         sourceEntity.entityColumns.forEach((k, v) -> this.entityColumns.put(k, null));
     }
 
     // Getter / Setter
 
+    /**
+     * @param entityColumnInfo
+     *            column information for the column whose value you are looking for
+     * @return
+     *         value of column that is declared by given parameter
+     */
     public <T> T getColumnValue(final EntityColumnInfo<T> entityColumnInfo) {
 
         return entityColumnInfo.columnType.cast(entityColumns.get(entityColumnInfo));
     }
 
+    /**
+     * @param entityColumnInfo
+     *            column information for the column whose value you are want to set
+     * @param entityColumnValue
+     *            the new value
+     * @return
+     *         old value of column that is declared by given parameter
+     */
     @SuppressWarnings("unchecked")
     public <T> T setColumnValue(final EntityColumnInfo<T> entityColumnInfo, final T entityColumnValue) {
 
@@ -81,6 +154,33 @@ public abstract class AbstractEntity<PK> {
         return (T) setColumnValueGeneric(entityColumnInfo, entityColumnValue);
     }
 
+    /**
+     * @param entityColumnInfo
+     *            column information for the column that holds the foreign entity
+     *            you are want to set
+     * @param newRefEntity
+     *            the new entity that will be associated with this entity
+     * @return
+     *         the entity that was associated before with this entity
+     */
+    public <T extends AbstractEntity<?>> T setColumnValue(final EntityColumnInfo<T> entityColumnInfo,
+            final T newRefEntity) {
+
+        return setColumnValue(entityColumnInfo, newRefEntity, true);
+    }
+
+    /**
+     * @param entityColumnInfo
+     *            column information for the column that holds the foreign entity
+     *            you are want to set
+     * @param newRefEntity
+     *            the new entity that is now associated with this entity
+     * @param removeOldEntity
+     *            Should the entity that was associated before with this entity be
+     *            removed?
+     * @return
+     *         the entity that was associated before with this entity
+     */
     @SuppressWarnings("unchecked")
     public <T extends AbstractEntity<?>> T setColumnValue(final EntityColumnInfo<T> entityColumnInfo,
             final T newRefEntity, final boolean removeOldEntity) {
@@ -95,6 +195,8 @@ public abstract class AbstractEntity<PK> {
          */
         final EntityColumnInfo<?> eci = new EntityColumnInfo<>(this.getClass());
 
+        setColumnValueGeneric(entityColumnInfo, newRefEntity);
+
         final T oldRefEntity = (T) setColumnValueGeneric(entityColumnInfo, newRefEntity);
 
         if (oldRefEntity != null && removeOldEntity)
@@ -106,21 +208,30 @@ public abstract class AbstractEntity<PK> {
         return oldRefEntity;
     }
 
-    public <T extends AbstractEntity<?>> T setColumnValue(final EntityColumnInfo<T> entityColumnInfo,
-            final T newRefEntity) {
-
-        return setColumnValue(entityColumnInfo, newRefEntity, false);
-    }
-
+    /**
+     *
+     * @param entityColumnInfo
+     * @param entityColumnValue
+     * @return
+     */
     @SuppressWarnings("unchecked")
     private Object setColumnValueGeneric(final EntityColumnInfo<?> entityColumnInfo, final Object entityColumnValue) {
 
-        if (!this.entityColumns.containsKey(entityColumnInfo))
+        if (!this.entityColumns.containsKey(entityColumnInfo)) {
+
+            final CharSequence columnName =
+                    AbstractEntity.class.isAssignableFrom(entityColumnInfo.columnType) ? ""
+                            : "' and name '" + entityColumnInfo.columnName;
+
             throw new IllegalArgumentException(
-                    "There is no column with name \"" + entityColumnInfo.columnName + "\" and type "
-                            + entityColumnInfo.columnType.getSimpleName() + " for entity type "
-                            + this.getClass().getSimpleName() + ". You may forgot to add the information about "
-                            + entityColumnInfo.columnType.getSimpleName() + ".");
+                    "The entity '" +
+                            this.getClass().getSimpleName() +
+                            "' hasn't got a column for type '" +
+                            entityColumnInfo.columnType.getSimpleName() +
+                            columnName +
+                            ". May you forgot to add the information?");
+
+        }
 
         return entityColumns.put((EntityColumnInfo<Object>) entityColumnInfo, entityColumnValue);
     }
