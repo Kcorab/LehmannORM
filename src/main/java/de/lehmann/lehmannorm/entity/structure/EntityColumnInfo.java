@@ -107,4 +107,11 @@ public class EntityColumnInfo<ECVT> {
 
         return false;
     }
+
+    @Override
+    public String toString() {
+
+        return (columnName != null ? "column name: " + columnName + " | " : "") +
+                "represented type: " + columnType.getSimpleName();
+    }
 }
