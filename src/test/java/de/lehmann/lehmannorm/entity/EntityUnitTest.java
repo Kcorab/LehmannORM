@@ -14,87 +14,78 @@ import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
  */
 public class EntityUnitTest {
 
-    private TestEntityA unitToTestA;
-    private TestEntityB unitToTestB;
+    private TestEntityA unitToTestA1;
+    private TestEntityA unitToTestA2;
+    private TestEntityB unitToTestB1;
+    private TestEntityB unitToTestB2;
 
     @BeforeEach
     public void init() {
 
-        unitToTestA = new TestEntityA();
-        unitToTestB = new TestEntityB();
+        unitToTestA1 = new TestEntityA();
+        unitToTestA2 = new TestEntityA();
+        unitToTestB1 = new TestEntityB();
+        unitToTestB2 = new TestEntityB();
     }
 
     @Test
-    public void setColumnValue() {
-
-        TestEntityB oldRefEntity;
+    public void setPrimitiveColumnValue() {
 
         final Integer newId = 0;
         final String newDescription = "mock entity";
 
-        // Insert new values and check that the old value are null.
+        assertNull(unitToTestA1.setColumnValue(TestEntityA.ID, newId));
 
-        final Integer oldId = unitToTestA.setColumnValue(TestEntityA.ID, newId);
-        assertNull(oldId);
-
-        oldRefEntity = unitToTestA.setColumnValue(TestEntityA.REF_ID, unitToTestB);
-        assertNull(oldRefEntity);
-
-        final String oldDescription = unitToTestA.setColumnValue(TestEntityA.DESCRIPTION, newDescription);
+        final String oldDescription = unitToTestA1.setColumnValue(TestEntityA.DESCRIPTION, newDescription);
         assertNull(oldDescription);
 
         // Check the new values are inserted correctly.
 
-        assertEquals(newId, unitToTestA.getColumnValue(TestEntityA.ID));
-        assertEquals(unitToTestB, unitToTestA.getColumnValue(TestEntityA.REF_ID));
-        assertEquals(newDescription, unitToTestA.getColumnValue(TestEntityA.DESCRIPTION));
-
-        // Check reverse set of refEntity.
-
-        assertEquals(unitToTestA, unitToTestB.getColumnValue(TestEntityB.REF_ID));
-
-        // Create a new instance of the refEntity
-
-        final TestEntityB newUnitToTestB = new TestEntityB();
-
-        // Check that the old reference entity is unitToTestB.
-
-        oldRefEntity = unitToTestA.setColumnValue(TestEntityA.REF_ID, newUnitToTestB, true);
-        assertEquals(unitToTestB, oldRefEntity);
-
-        // Check that reference entity was removed from unitToTestB.
-
-        assertNull(oldRefEntity.getColumnValue(TestEntityB.REF_ID));
-
-        // Check that this entity setting works also in the other way.
-
-        // Set unitToTestA to unitToTestB again. //
-
-        assertNull(unitToTestB.setColumnValue(TestEntityB.REF_ID, unitToTestA));
-
-        // Create new instance of TestEntityA.
-
-        final TestEntityA newUnitToTestA = new TestEntityA();
-
-        // Check that old entity reference is the unitToTestA.
-
-        assertEquals(unitToTestA, unitToTestB.setColumnValue(TestEntityB.REF_ID, newUnitToTestA, true));
-
-        // Check that unitToTestA holds no reference to unitToTestB any more.
-
-        assertNull(unitToTestA.getColumnValue(TestEntityA.REF_ID));
-
-        // Check that the newUnitToTestA holds a reference to unitToTestB.
-
-        assertEquals(unitToTestB, newUnitToTestA.getColumnValue(TestEntityA.REF_ID));
+        assertEquals(newId, unitToTestA1.getColumnValue(TestEntityA.ID));
+        assertEquals(newDescription, unitToTestA1.getColumnValue(TestEntityA.DESCRIPTION));
     };
+
+    @Test
+    public void setReferenceEntity() {
+
+        // # A1 and B1
+        assertNull(unitToTestB1.getColumnValue(TestEntityB.REF_ID));
+
+        assertNull(unitToTestA1.setColumnValue(TestEntityA.REF_ID, unitToTestB1));
+
+        assertEquals(unitToTestB1, unitToTestA1.getColumnValue(TestEntityA.REF_ID));
+
+        assertEquals(unitToTestA1, unitToTestB1.getColumnValue(TestEntityB.REF_ID));
+
+        // # A2 and B2
+
+        assertNull(unitToTestA2.getColumnValue(TestEntityA.REF_ID));
+
+        assertNull(unitToTestB2.setColumnValue(TestEntityB.REF_ID, unitToTestA2));
+
+        assertEquals(unitToTestA2, unitToTestB2.getColumnValue(TestEntityB.REF_ID));
+
+        assertEquals(unitToTestB2, unitToTestA2.getColumnValue(TestEntityA.REF_ID));
+
+        // # binds A1 to B2
+
+        assertEquals(unitToTestA2, unitToTestB2.setColumnValue(TestEntityB.REF_ID, unitToTestA1));
+
+        // # check, the old bindings are resolved
+
+        // ## B1 doesn't have a binding anymore
+        assertNull(unitToTestB1.getColumnValue(TestEntityB.REF_ID));
+
+        // ## A2 doesn't have a binding anymore
+        assertNull(unitToTestA2.getColumnValue(TestEntityA.REF_ID));
+    }
 
     @Test
     public void setColumnValueNegativ() {
 
         final EntityColumnInfo<Double> notExistingColumn = new EntityColumnInfo<>("NOT_EXISTING_COLUMN", Double.class);
 
-        assertThrows(IllegalArgumentException.class, () -> unitToTestA.setColumnValue(notExistingColumn, 2.4));
+        assertThrows(IllegalArgumentException.class, () -> unitToTestA1.setColumnValue(notExistingColumn, 2.4));
     };
 
     // ## DATA MOCKS

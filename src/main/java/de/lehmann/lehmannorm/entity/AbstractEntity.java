@@ -187,6 +187,8 @@ public abstract class AbstractEntity<PK> {
 
         LOGGER.debug(() -> "Column value is a reference entity.");
 
+        final T oldRefEntity = (T) setColumnValueGeneric(entityColumnInfo, newRefEntity);
+
         /*
          * If the EntityColumnInfo stores a type that extends AbstractEntity then the
          * columnName will ignore by hashCode() and equals(...). So, we are able to
@@ -195,15 +197,19 @@ public abstract class AbstractEntity<PK> {
          */
         final EntityColumnInfo<?> eci = new EntityColumnInfo<>(this.getClass());
 
-        setColumnValueGeneric(entityColumnInfo, newRefEntity);
-
-        final T oldRefEntity = (T) setColumnValueGeneric(entityColumnInfo, newRefEntity);
-
         if (oldRefEntity != null && removeOldEntity)
             ((AbstractEntity<?>) oldRefEntity).setColumnValueGeneric(eci, null);
 
-        if (newRefEntity != null)
-            ((AbstractEntity<?>) newRefEntity).setColumnValueGeneric(eci, this);
+        if (newRefEntity != null) {
+            final AbstractEntity<?> oldRefEntity2 =
+                    (AbstractEntity<?>) ((AbstractEntity<?>) newRefEntity).setColumnValueGeneric(eci, this);
+
+            if (oldRefEntity2 != null && removeOldEntity) {
+
+                final EntityColumnInfo<?> eci2 = new EntityColumnInfo<>(newRefEntity.getClass());
+                oldRefEntity2.setColumnValueGeneric(eci2, null);
+            }
+        }
 
         return oldRefEntity;
     }
