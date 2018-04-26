@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import de.lehmann.lehmannorm.AConnectionTest;
 import de.lehmann.lehmannorm.entity.AbstractEntity;
-import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
+import de.lehmann.lehmannorm.entity.structure.EntityToOneColumnInfo;
 import de.lehmann.lehmannorm.stubs.ConnectionStub;
 import de.lehmann.lehmannorm.stubs.PreparedStatementStub;
 
@@ -106,13 +106,13 @@ public class DefaultStatementBuilderUnitTest extends AConnectionTest {
     private static class TestEntityA extends AbstractEntity<Integer> {
 
         public final static String                    TABLE_NAME = "TEST_ENTITY_A";
-        public final static EntityColumnInfo<Integer> ID         = new EntityColumnInfo<>("ID", Integer.class);
+        public final static EntityToOneColumnInfo<Integer> ID         = new EntityToOneColumnInfo<>("ID", Integer.class);
         // The next value has no column name because the foreign key is stored by the
         // referenced entity.
-        public final static EntityColumnInfo<TestEntityB> REF_ID      = new EntityColumnInfo<>(TestEntityB.class);
-        public final static EntityColumnInfo<Double>      NUMBER      = new EntityColumnInfo<>("NUMBER", Double.class);
-        public final static EntityColumnInfo<String>      DESCRIPTION =
-                new EntityColumnInfo<>("DESCRIPTION", String.class);
+        public final static EntityToOneColumnInfo<TestEntityB> REF_ID      = new EntityToOneColumnInfo<>(TestEntityB.class);
+        public final static EntityToOneColumnInfo<Double>      NUMBER      = new EntityToOneColumnInfo<>("NUMBER", Double.class);
+        public final static EntityToOneColumnInfo<String>      DESCRIPTION =
+                new EntityToOneColumnInfo<>("DESCRIPTION", String.class);
 
         public TestEntityA() {
             super(ID, REF_ID, NUMBER, DESCRIPTION);
@@ -127,9 +127,9 @@ public class DefaultStatementBuilderUnitTest extends AConnectionTest {
     private static class TestEntityB extends AbstractEntity<Integer> {
 
         public final static String                        TABLE_NAME = "TEST_ENTITY_B";
-        public final static EntityColumnInfo<Integer>     ID         = new EntityColumnInfo<>("ID", Integer.class);
-        public final static EntityColumnInfo<TestEntityA> REF_ID     =
-                new EntityColumnInfo<>("REF_ID", TestEntityA.class);
+        public final static EntityToOneColumnInfo<Integer>     ID         = new EntityToOneColumnInfo<>("ID", Integer.class);
+        public final static EntityToOneColumnInfo<TestEntityA> REF_ID     =
+                new EntityToOneColumnInfo<>("REF_ID", TestEntityA.class);
 
         public TestEntityB() {
             super(ID, REF_ID);

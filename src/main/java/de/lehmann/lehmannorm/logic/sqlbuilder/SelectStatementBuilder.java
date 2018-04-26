@@ -41,6 +41,6 @@ public class SelectStatementBuilder implements IStatementBuilder {
     @Override
     public String generateStatementTail(final Set<EntityColumnInfo<Object>> entityColumnInfos) {
 
-        return entityColumnInfos.iterator().next().columnName;
+        return entityColumnInfos.iterator().next().getColumnName();
     }
 }

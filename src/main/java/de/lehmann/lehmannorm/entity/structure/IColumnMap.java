@@ -8,11 +8,11 @@ import java.util.Map;
  * @param <ECVT>
  *            entity column value type
  */
-public interface IColumnMap<ECVT> extends Map<EntityColumnInfo<ECVT>, ECVT> {
+public interface IColumnMap<ECVT> extends Map<EntityToOneColumnInfo<ECVT>, ECVT> {
 
-    Map.Entry<EntityColumnInfo<ECVT>, ECVT> get(final int index);
+    Map.Entry<EntityToOneColumnInfo<ECVT>, ECVT> get(final int index);
 
-    EntityColumnInfo<ECVT> getColumnInfo(final int index);
+    EntityToOneColumnInfo<ECVT> getColumnInfo(final int index);
 
     ECVT getColumnValue(final int index);
 }

@@ -6,13 +6,17 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.platform.commons.logging.Logger;
+import org.junit.platform.commons.logging.LoggerFactory;
 
-import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
+import de.lehmann.lehmannorm.entity.structure.EntityToOneColumnInfo;
 
 /**
  * @author Tim Lehmann
  */
 public class EntityUnitTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EntityUnitTest.class);
 
     private TestEntityA unitToTestA1;
     private TestEntityA unitToTestA2;
@@ -78,12 +82,14 @@ public class EntityUnitTest {
 
         // ## A2 doesn't have a binding anymore
         assertNull(unitToTestA2.getColumnValue(TestEntityA.REF_ID));
+
     }
 
     @Test
     public void setColumnValueNegativ() {
 
-        final EntityColumnInfo<Double> notExistingColumn = new EntityColumnInfo<>("NOT_EXISTING_COLUMN", Double.class);
+        final EntityToOneColumnInfo<Double> notExistingColumn =
+                new EntityToOneColumnInfo<>("NOT_EXISTING_COLUMN", Double.class);
 
         assertThrows(IllegalArgumentException.class, () -> unitToTestA1.setColumnValue(notExistingColumn, 2.4));
     };
@@ -92,10 +98,12 @@ public class EntityUnitTest {
 
     private static class TestEntityA extends AbstractEntity<Integer> {
 
-        public static final EntityColumnInfo<Integer>     ID          = new EntityColumnInfo<>("ID", Integer.class);
-        public static final EntityColumnInfo<TestEntityB> REF_ID      = new EntityColumnInfo<>(TestEntityB.class);
-        public static final EntityColumnInfo<String>      DESCRIPTION =
-                new EntityColumnInfo<>("DESCRIPTION", String.class);
+        public static final EntityToOneColumnInfo<Integer>     ID          =
+                new EntityToOneColumnInfo<>("ID", Integer.class);
+        public static final EntityToOneColumnInfo<TestEntityB> REF_ID      =
+                new EntityToOneColumnInfo<>(TestEntityB.class);
+        public static final EntityToOneColumnInfo<String>      DESCRIPTION =
+                new EntityToOneColumnInfo<>("DESCRIPTION", String.class);
 
         protected TestEntityA() {
             super(ID, REF_ID, DESCRIPTION);
@@ -109,8 +117,10 @@ public class EntityUnitTest {
 
     private static class TestEntityB extends AbstractEntity<Integer> {
 
-        public static final EntityColumnInfo<Integer>     ID     = new EntityColumnInfo<>("ID", Integer.class);
-        public static final EntityColumnInfo<TestEntityA> REF_ID = new EntityColumnInfo<>("REF_ID", TestEntityA.class);
+        public static final EntityToOneColumnInfo<Integer>     ID     =
+                new EntityToOneColumnInfo<>("ID", Integer.class);
+        public static final EntityToOneColumnInfo<TestEntityA> REF_ID =
+                new EntityToOneColumnInfo<>("REF_ID", TestEntityA.class);
 
         protected TestEntityB() {
             super(ID, REF_ID);

@@ -157,10 +157,10 @@ public class ColumnMap<ECVT> implements IBoundedColumnMap<ECVT> {
     @Override
     public ECVT remove(final Object key) {
 
-        if (!(key instanceof EntityColumnInfo))
+        if (!(key instanceof EntityToOneColumnInfo))
 
             throw new IllegalArgumentException(
-                    "The key value have to be an instance of " + EntityColumnInfo.class.getSimpleName());
+                    "The key value have to be an instance of " + EntityToOneColumnInfo.class.getSimpleName());
 
         listForColumns.remove(key);
         return mapForColumns.remove(key);

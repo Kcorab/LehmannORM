@@ -54,7 +54,7 @@ public class InsertStatementBuilder implements IStatementBuilder {
         iterator.next();
 
         while (iterator.hasNext())
-            if (iterator.next().columnName != null)
+            if (iterator.next().getColumnName() != null)
                 valuesBuilder.append(",?");
 
         valuesBuilder.append(")");

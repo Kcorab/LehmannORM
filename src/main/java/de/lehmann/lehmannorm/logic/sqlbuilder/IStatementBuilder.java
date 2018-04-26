@@ -34,14 +34,14 @@ public interface IStatementBuilder {
 
         // Put all column names in a string.
 
-        columnsBuilder = new StringBuilder(it.next().columnName);
+        columnsBuilder = new StringBuilder(it.next().getColumnName());
 
         while (it.hasNext()) {
 
             final EntityColumnInfo<?> entityColumnInfo = it.next();
 
-            if (entityColumnInfo.columnName != null)
-                columnsBuilder.append(",").append(entityColumnInfo.columnName);
+            if (entityColumnInfo.getColumnName() != null)
+                columnsBuilder.append(",").append(entityColumnInfo.getColumnName());
 
             /*
              * If columnName is null the entity references to another entity in object model

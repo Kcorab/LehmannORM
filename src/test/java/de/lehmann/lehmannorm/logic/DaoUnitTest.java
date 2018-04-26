@@ -17,7 +17,7 @@ import org.junit.platform.commons.logging.LoggerFactory;
 
 import de.lehmann.lehmannorm.AConnectionTest;
 import de.lehmann.lehmannorm.entity.AbstractEntity;
-import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
+import de.lehmann.lehmannorm.entity.structure.EntityToOneColumnInfo;
 import de.lehmann.lehmannorm.stubs.ConnectionStub;
 import de.lehmann.lehmannorm.stubs.PreparedStatementStub;
 
@@ -35,12 +35,12 @@ public class DaoUnitTest extends AConnectionTest {
 
         Connection connection;
 
-        final EntityColumnInfo<Integer> id = TestEntityA_1A.ID;
+        final EntityToOneColumnInfo<Integer> id = TestEntityA_1A.ID;
 
-        final EntityColumnInfo<?> idUnkown = id;
+        final EntityToOneColumnInfo<?> idUnkown = id;
 
         @SuppressWarnings("unchecked")
-        final EntityColumnInfo<Object> idObject = (EntityColumnInfo<Object>) idUnkown;
+        final EntityToOneColumnInfo<Object> idObject = (EntityToOneColumnInfo<Object>) idUnkown;
 
         final Class<Object> columnType = idObject.columnType;
 
@@ -210,9 +210,9 @@ public class DaoUnitTest extends AConnectionTest {
 
     private static class TestEntityA_1A extends AbstractEntity<Integer> {
 
-        public final static EntityColumnInfo<Integer>        ID   = new EntityColumnInfo<>("ID", Integer.class);
-        public final static EntityColumnInfo<TestEntityB_1A> ID_B =
-                new EntityColumnInfo<>("ID_B", TestEntityB_1A.class);
+        public final static EntityToOneColumnInfo<Integer>        ID   = new EntityToOneColumnInfo<>("ID", Integer.class);
+        public final static EntityToOneColumnInfo<TestEntityB_1A> ID_B =
+                new EntityToOneColumnInfo<>("ID_B", TestEntityB_1A.class);
 
         protected TestEntityA_1A() {
             super(ID, ID_B);
@@ -226,10 +226,10 @@ public class DaoUnitTest extends AConnectionTest {
 
     private static class TestEntityB_1A extends AbstractEntity<Integer> {
 
-        public final static EntityColumnInfo<Integer>        ID    = new EntityColumnInfo<>("ID", Integer.class);
-        public final static EntityColumnInfo<TestEntityA_1A> REF_A = new EntityColumnInfo<>(TestEntityA_1A.class);
-        public final static EntityColumnInfo<TestEntityC_1A> ID_C  =
-                new EntityColumnInfo<>("ID_C", TestEntityC_1A.class);
+        public final static EntityToOneColumnInfo<Integer>        ID    = new EntityToOneColumnInfo<>("ID", Integer.class);
+        public final static EntityToOneColumnInfo<TestEntityA_1A> REF_A = new EntityToOneColumnInfo<>(TestEntityA_1A.class);
+        public final static EntityToOneColumnInfo<TestEntityC_1A> ID_C  =
+                new EntityToOneColumnInfo<>("ID_C", TestEntityC_1A.class);
 
         protected TestEntityB_1A() {
             super(ID, REF_A, ID_C);
@@ -243,8 +243,8 @@ public class DaoUnitTest extends AConnectionTest {
 
     private static class TestEntityC_1A extends AbstractEntity<Integer> {
 
-        public final static EntityColumnInfo<Integer>        ID    = new EntityColumnInfo<>("ID", Integer.class);
-        public final static EntityColumnInfo<TestEntityB_1A> REF_B = new EntityColumnInfo<>(TestEntityB_1A.class);
+        public final static EntityToOneColumnInfo<Integer>        ID    = new EntityToOneColumnInfo<>("ID", Integer.class);
+        public final static EntityToOneColumnInfo<TestEntityB_1A> REF_B = new EntityToOneColumnInfo<>(TestEntityB_1A.class);
 
         protected TestEntityC_1A() {
             super(ID, REF_B);
@@ -266,11 +266,11 @@ public class DaoUnitTest extends AConnectionTest {
 
     private static class TestEntityA_1B extends AbstractEntity<Integer> {
 
-        public final static EntityColumnInfo<Integer>        ID   = new EntityColumnInfo<>("ID", Integer.class);
-        public final static EntityColumnInfo<TestEntityB_1B> ID_B =
-                new EntityColumnInfo<>("ID_B", TestEntityB_1B.class);
-        public final static EntityColumnInfo<TestEntityC_1B> ID_C =
-                new EntityColumnInfo<>("ID_C", TestEntityC_1B.class);
+        public final static EntityToOneColumnInfo<Integer>        ID   = new EntityToOneColumnInfo<>("ID", Integer.class);
+        public final static EntityToOneColumnInfo<TestEntityB_1B> ID_B =
+                new EntityToOneColumnInfo<>("ID_B", TestEntityB_1B.class);
+        public final static EntityToOneColumnInfo<TestEntityC_1B> ID_C =
+                new EntityToOneColumnInfo<>("ID_C", TestEntityC_1B.class);
 
         protected TestEntityA_1B() {
             super(ID, ID_B, ID_C);
@@ -284,8 +284,8 @@ public class DaoUnitTest extends AConnectionTest {
 
     private static class TestEntityB_1B extends AbstractEntity<Integer> {
 
-        public final static EntityColumnInfo<Integer>        ID    = new EntityColumnInfo<>("ID", Integer.class);
-        public final static EntityColumnInfo<TestEntityA_1B> REF_A = new EntityColumnInfo<>(TestEntityA_1B.class);
+        public final static EntityToOneColumnInfo<Integer>        ID    = new EntityToOneColumnInfo<>("ID", Integer.class);
+        public final static EntityToOneColumnInfo<TestEntityA_1B> REF_A = new EntityToOneColumnInfo<>(TestEntityA_1B.class);
 
         protected TestEntityB_1B() {
             super(ID, REF_A);
@@ -299,8 +299,8 @@ public class DaoUnitTest extends AConnectionTest {
 
     private static class TestEntityC_1B extends AbstractEntity<Integer> {
 
-        public final static EntityColumnInfo<Integer>        ID    = new EntityColumnInfo<>("ID", Integer.class);
-        public final static EntityColumnInfo<TestEntityA_1B> REF_A = new EntityColumnInfo<>(TestEntityA_1B.class);
+        public final static EntityToOneColumnInfo<Integer>        ID    = new EntityToOneColumnInfo<>("ID", Integer.class);
+        public final static EntityToOneColumnInfo<TestEntityA_1B> REF_A = new EntityToOneColumnInfo<>(TestEntityA_1B.class);
 
         protected TestEntityC_1B() {
             super(ID, REF_A);

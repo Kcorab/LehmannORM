@@ -39,27 +39,27 @@ public class ColumnMapUnitTest {
 
         return new Object[][] {
                 {
-                        new EntityColumn<>(new EntityColumnInfo<>(columnName, String.class), values[0]), // data
+                        new EntityColumn<>(new EntityToOneColumnInfo<>(columnName, String.class), values[0]), // data
                         null // expected result
                 },
                 {
-                        new EntityColumn<>(new EntityColumnInfo<>(columnName, String.class), values[1]), // data
+                        new EntityColumn<>(new EntityToOneColumnInfo<>(columnName, String.class), values[1]), // data
                         values[0] // expected result: value of previous inserted value
                 },
                 {
-                        new EntityColumn<>(new EntityColumnInfo<>(columnName, String.class), values[2]), // data
+                        new EntityColumn<>(new EntityToOneColumnInfo<>(columnName, String.class), values[2]), // data
                         values[1] // expected result: value of previous inserted value
                 },
                 {
-                        new EntityColumn<>(new EntityColumnInfo<>(columnName, String.class), values[3]), // data
+                        new EntityColumn<>(new EntityToOneColumnInfo<>(columnName, String.class), values[3]), // data
                         values[2] // expected result: value of previous inserted value
                 },
                 {
-                        new EntityColumn<>(new EntityColumnInfo<>(columnName, String.class), values[4]), // data
+                        new EntityColumn<>(new EntityToOneColumnInfo<>(columnName, String.class), values[4]), // data
                         values[3] // expected result: value of previous inserted value
                 },
                 {
-                        new EntityColumn<>(new EntityColumnInfo<>(columnName, String.class), values[5]), // data
+                        new EntityColumn<>(new EntityToOneColumnInfo<>(columnName, String.class), values[5]), // data
                         values[4] // expected result: value of previous insert
                 }
         };
@@ -79,13 +79,13 @@ public class ColumnMapUnitTest {
     public void testGetByKey() {
 
         final EntityColumn<?> entityColumn1 =
-                new EntityColumn<>(new EntityColumnInfo<>("FIRST", String.class), "first");
+                new EntityColumn<>(new EntityToOneColumnInfo<>("FIRST", String.class), "first");
 
         final EntityColumn<?> entityColumn2 =
-                new EntityColumn<>(new EntityColumnInfo<>("SECOND", Integer.class), 2);
+                new EntityColumn<>(new EntityToOneColumnInfo<>("SECOND", Integer.class), 2);
 
         final EntityColumn<?> entityColumn3 =
-                new EntityColumn<>(new EntityColumnInfo<>("THIRD", Object.class), new Object());
+                new EntityColumn<>(new EntityToOneColumnInfo<>("THIRD", Object.class), new Object());
 
         unitToDynamicTest.put((EntityColumnInfo<Object>) entityColumn1.getKey(), entityColumn1.getValue());
         unitToDynamicTest.put((EntityColumnInfo<Object>) entityColumn2.getKey(), entityColumn2.getValue());
@@ -101,13 +101,13 @@ public class ColumnMapUnitTest {
     public void testGetByIndex() {
 
         final EntityColumn<?> expectedEntityColumn0 =
-                new EntityColumn<>(new EntityColumnInfo<>("FIRST", String.class), "first");
+                new EntityColumn<>(new EntityToOneColumnInfo<>("FIRST", String.class), "first");
 
         final EntityColumn<?> expectedEntityColumn1 =
-                new EntityColumn<>(new EntityColumnInfo<>("SECOND", Integer.class), 2);
+                new EntityColumn<>(new EntityToOneColumnInfo<>("SECOND", Integer.class), 2);
 
         final EntityColumn<?> expectedEntityColumn2 =
-                new EntityColumn<>(new EntityColumnInfo<>("THIRD", Object.class), new Object());
+                new EntityColumn<>(new EntityToOneColumnInfo<>("THIRD", Object.class), new Object());
 
         unitToDynamicTest.put((EntityColumnInfo<Object>) expectedEntityColumn0.getKey(),
                 expectedEntityColumn0.getValue());

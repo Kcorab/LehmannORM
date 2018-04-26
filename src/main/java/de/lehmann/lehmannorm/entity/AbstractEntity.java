@@ -5,6 +5,7 @@ import org.junit.platform.commons.logging.LoggerFactory;
 
 import de.lehmann.lehmannorm.entity.structure.ColumnMap;
 import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
+import de.lehmann.lehmannorm.entity.structure.EntityToOneColumnInfo;
 import de.lehmann.lehmannorm.entity.structure.IBoundedColumnMap;
 
 /**
@@ -64,7 +65,7 @@ public abstract class AbstractEntity<PK> {
      */
     protected AbstractEntity(final Class<PK> primaryKeyType, final String primaryKeyName,
             final PK primaryKeyValue, final EntityColumnInfo<?>... entityColumnInfos) {
-        this(new EntityColumnInfo<>(primaryKeyName, primaryKeyType), primaryKeyValue, entityColumnInfos);
+        this(new EntityToOneColumnInfo<>(primaryKeyName, primaryKeyType), primaryKeyValue, entityColumnInfos);
     }
 
     /**
@@ -135,7 +136,7 @@ public abstract class AbstractEntity<PK> {
      */
     public <T> T getColumnValue(final EntityColumnInfo<T> entityColumnInfo) {
 
-        return entityColumnInfo.columnType.cast(entityColumns.get(entityColumnInfo));
+        return entityColumnInfo.getColumnType().cast(entityColumns.get(entityColumnInfo));
     }
 
     /**
@@ -195,7 +196,7 @@ public abstract class AbstractEntity<PK> {
          * override the old value (AbstractEntity) by the key (EntityColumnInfo) without
          * knowing the contingent columName.
          */
-        final EntityColumnInfo<?> eci = new EntityColumnInfo<>(this.getClass());
+        final EntityColumnInfo<?> eci = new EntityToOneColumnInfo<>(this.getClass());
 
         if (oldRefEntity != null && removeOldEntity)
             ((AbstractEntity<?>) oldRefEntity).setColumnValueGeneric(eci, null);
@@ -206,7 +207,7 @@ public abstract class AbstractEntity<PK> {
 
             if (oldRefEntity2 != null && removeOldEntity) {
 
-                final EntityColumnInfo<?> eci2 = new EntityColumnInfo<>(newRefEntity.getClass());
+                final EntityColumnInfo<?> eci2 = new EntityToOneColumnInfo<>(newRefEntity.getClass());
                 oldRefEntity2.setColumnValueGeneric(eci2, null);
             }
         }
@@ -226,14 +227,14 @@ public abstract class AbstractEntity<PK> {
         if (!this.entityColumns.containsKey(entityColumnInfo)) {
 
             final CharSequence columnName =
-                    AbstractEntity.class.isAssignableFrom(entityColumnInfo.columnType) ? ""
-                            : "' and name '" + entityColumnInfo.columnName;
+                    AbstractEntity.class.isAssignableFrom(entityColumnInfo.getColumnType()) ? ""
+                            : "' and name '" + entityColumnInfo.getColumnName();
 
             throw new IllegalArgumentException(
                     "The entity '" +
                             this.getClass().getSimpleName() +
                             "' hasn't got a column for type '" +
-                            entityColumnInfo.columnType.getSimpleName() +
+                            entityColumnInfo.getColumnType().getSimpleName() +
                             columnName +
                             ". May you forgot to add the information?");
 
@@ -253,7 +254,7 @@ public abstract class AbstractEntity<PK> {
     }
 
     public PK getPrimaryKeyValue() {
-        return this.primaryKeyInfo.columnType.cast(entityColumns.get(primaryKeyInfo));
+        return this.primaryKeyInfo.getColumnType().cast(entityColumns.get(primaryKeyInfo));
     }
 
     @SuppressWarnings("unchecked")

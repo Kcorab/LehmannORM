@@ -225,12 +225,12 @@ public class Dao<E extends AbstractEntity<PK>, PK> {
             // Is there a reference entity at least?
 
             // ONE TO ONE
-            if (AbstractEntity.class.isAssignableFrom(columnInfo.columnType))
+            if (AbstractEntity.class.isAssignableFrom(columnInfo.getColumnType()))
 
                 this.insertOneToOne(entity, triggerdEntity, columnInfoAndValue, columnInfo, paramIndex, recStack);
 
             // ONE TO MANY
-            else if (Collection.class.isAssignableFrom(columnInfo.columnType))
+            else if (Collection.class.isAssignableFrom(columnInfo.getColumnType()))
 
                 this.insertOneToMany();
 
@@ -264,7 +264,7 @@ public class Dao<E extends AbstractEntity<PK>, PK> {
          * Holds the current entity the foreign key? =>
          * Is it needed to insert the reference entity before current entity?
          */
-        if (columnInfo.columnName != null) { // Yes.
+        if (columnInfo.getColumnName() != null) { // Yes.
 
             // Insert the reference entity firstly.
             if (refEntity != null) {

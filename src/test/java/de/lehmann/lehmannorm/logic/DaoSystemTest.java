@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import de.lehmann.lehmannorm.ADatabaseConnectionSystemTest;
 import de.lehmann.lehmannorm.entity.AbstractEntity;
-import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
+import de.lehmann.lehmannorm.entity.structure.EntityToOneColumnInfo;
 
 /**
  * @author Tim Lehmann
@@ -40,7 +40,7 @@ public class DaoSystemTest extends ADatabaseConnectionSystemTest {
             return deleteStatement.executeUpdate(
                     String.format("DELETE FROM %s WHERE %s = %s",
                             entity.getTableName(),
-                            entity.getPrimaryKeyInfo().columnName,
+                            entity.getPrimaryKeyInfo().getColumnName(),
                             entity.getPrimaryKeyValue()));
         }
     }
@@ -59,7 +59,7 @@ public class DaoSystemTest extends ADatabaseConnectionSystemTest {
                 ResultSet cursor = selectStatement.executeQuery(
                         String.format("SELECT * FROM %s WHERE %s = %s",
                                 entity.getTableName(),
-                                entity.getPrimaryKeyInfo().columnName,
+                                entity.getPrimaryKeyInfo().getColumnName(),
                                 entity.getPrimaryKeyValue()));) {
 
             final Object[] columnValues;
@@ -141,11 +141,11 @@ public class DaoSystemTest extends ADatabaseConnectionSystemTest {
 
     private static class TestEntityA extends AbstractEntity<Integer> {
 
-        public static final String                    TABLE_NAME  = "TEST_TABLE_A";
-        public static final EntityColumnInfo<Integer> ID          =
-                new EntityColumnInfo<>("ID", Integer.class);
-        public static final EntityColumnInfo<String>  DESCRIPTION =
-                new EntityColumnInfo<>("DESCRIPTION", String.class);
+        public static final String                         TABLE_NAME  = "TEST_TABLE_A";
+        public static final EntityToOneColumnInfo<Integer> ID          =
+                new EntityToOneColumnInfo<>("ID", Integer.class);
+        public static final EntityToOneColumnInfo<String>  DESCRIPTION =
+                new EntityToOneColumnInfo<>("DESCRIPTION", String.class);
 
         protected TestEntityA() {
             super(ID, DESCRIPTION);

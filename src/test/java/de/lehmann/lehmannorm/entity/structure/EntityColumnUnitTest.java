@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
  */
 public class EntityColumnUnitTest {
 
-    public Map<EntityColumnInfo<?>, String> map = new LinkedHashMap<>();
+    public Map<EntityToOneColumnInfo<?>, String> map = new LinkedHashMap<>();
 
     @BeforeEach
     public void beforeTestMap() {
@@ -25,22 +25,22 @@ public class EntityColumnUnitTest {
     @Test
     public void testEquals() {
 
-        assertEquals(new EntityColumnInfo<>("COLUMN", Integer.class), new EntityColumnInfo<>("COLUMN", Integer.class));
-        assertNotEquals(new EntityColumnInfo<>("COLUMN", Integer.class), new EntityColumnInfo<>("COLUMN", Long.class));
+        assertEquals(new EntityToOneColumnInfo<>("COLUMN", Integer.class), new EntityToOneColumnInfo<>("COLUMN", Integer.class));
+        assertNotEquals(new EntityToOneColumnInfo<>("COLUMN", Integer.class), new EntityToOneColumnInfo<>("COLUMN", Long.class));
     }
 
     @Test
     public void testMap() {
 
         final String excpectedValue = "assignedValue";
-        map.put(new EntityColumnInfo<>("COLUMN", String.class), excpectedValue);
+        map.put(new EntityToOneColumnInfo<>("COLUMN", String.class), excpectedValue);
 
         String actualValue;
 
-        actualValue = map.get(new EntityColumnInfo<>("COLUMN", String.class));
+        actualValue = map.get(new EntityToOneColumnInfo<>("COLUMN", String.class));
         assertEquals(excpectedValue, actualValue);
 
-        actualValue = map.get(new EntityColumnInfo<>("COLUMN", Integer.class));
+        actualValue = map.get(new EntityToOneColumnInfo<>("COLUMN", Integer.class));
         assertNotEquals(excpectedValue, actualValue);
     }
 }
