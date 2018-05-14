@@ -1,10 +1,14 @@
 package de.lehmann.lehmannorm.entity;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
 
 import de.lehmann.lehmannorm.entity.structure.ColumnMap;
 import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
+import de.lehmann.lehmannorm.entity.structure.EntityToManyColumnInfo;
 import de.lehmann.lehmannorm.entity.structure.EntityToOneColumnInfo;
 import de.lehmann.lehmannorm.entity.structure.IBoundedColumnMap;
 
@@ -104,8 +108,19 @@ public abstract class AbstractEntity<PK> {
 
         entityColumns.put((EntityColumnInfo<Object>) primaryKeyColumnInfo, primaryKeyValue);
 
-        for (final EntityColumnInfo<?> entityColumn : entityColumnInfos)
-            entityColumns.put((EntityColumnInfo<Object>) entityColumn, null);
+        int index = -1;
+        while (index < entityColumnInfos.length) {
+
+            final EntityColumnInfo<?> entityColumnInfo = entityColumnInfos[++index];
+
+            if (!EntityToManyColumnInfo.class.isAssignableFrom(entityColumnInfo.getClass()))
+                break;
+            else
+                this.entityColumns.put((EntityColumnInfo<Object>) entityColumnInfo, new ArrayList<>());
+        }
+
+        while (index < entityColumnInfos.length)
+            entityColumns.put((EntityColumnInfo<Object>) entityColumnInfos[index++], null);
     }
 
     // copy constructor
@@ -117,13 +132,30 @@ public abstract class AbstractEntity<PK> {
      * @param sourceEntity
      *            entity instance copy from
      */
+    @SuppressWarnings("unchecked")
     public AbstractEntity(final AbstractEntity<PK> sourceEntity) {
 
         this.primaryKeyInfo = sourceEntity.primaryKeyInfo;
         this.entityColumns = new ColumnMap<>(sourceEntity.entityColumns.size());
 
         // Copy all immutable values of type EntityColumn to this entry set.
-        sourceEntity.entityColumns.forEach((k, v) -> this.entityColumns.put(k, null));
+
+        this.entityColumns.put((EntityColumnInfo<Object>) sourceEntity.primaryKeyInfo, null);
+
+        final int size = sourceEntity.entityColumns.size();
+        int index = 0;
+        while (index < size) {
+
+            final EntityColumnInfo<Object> entityColumnInfo = sourceEntity.entityColumns.getKeyByIndex(++index);
+
+            if (!EntityToManyColumnInfo.class.isAssignableFrom(entityColumnInfo.getClass()))
+                break;
+            else
+                this.entityColumns.put(entityColumnInfo, new ArrayList<>());
+        }
+
+        while (index < size)
+            entityColumns.put(sourceEntity.entityColumns.getKeyByIndex(index++), null);
     }
 
     // Getter / Setter
@@ -149,6 +181,8 @@ public abstract class AbstractEntity<PK> {
      */
     @SuppressWarnings("unchecked")
     public <T> T setColumnValue(final EntityColumnInfo<T> entityColumnInfo, final T entityColumnValue) {
+
+        checkThatColumnExists(entityColumnInfo);
 
         LOGGER.debug(() -> "Column value is a primitive.");
 
@@ -186,29 +220,40 @@ public abstract class AbstractEntity<PK> {
     public <T extends AbstractEntity<?>> T setColumnValue(final EntityColumnInfo<T> entityColumnInfo,
             final T newRefEntity, final boolean removeOldEntity) {
 
+        checkThatColumnExists(entityColumnInfo);
+
         LOGGER.debug(() -> "Column value is a reference entity.");
 
-        final T oldRefEntity = (T) setColumnValueGeneric(entityColumnInfo, newRefEntity);
+        final T oldRefEntity;
 
-        /*
-         * If the EntityColumnInfo stores a type that extends AbstractEntity then the
-         * columnName will ignore by hashCode() and equals(...). So, we are able to
-         * override the old value (AbstractEntity) by the key (EntityColumnInfo) without
-         * knowing the contingent columName.
-         */
-        final EntityColumnInfo<?> eci = new EntityToOneColumnInfo<>(this.getClass());
+        if (EntityToManyColumnInfo.class.isAssignableFrom(entityColumnInfo.getClass())) {
 
-        if (oldRefEntity != null && removeOldEntity)
-            ((AbstractEntity<?>) oldRefEntity).setColumnValueGeneric(eci, null);
+            ((Collection<Object>) this.entityColumns.get(entityColumnInfo)).add(newRefEntity);
+            oldRefEntity = null;
 
-        if (newRefEntity != null) {
-            final AbstractEntity<?> oldRefEntity2 =
-                    (AbstractEntity<?>) ((AbstractEntity<?>) newRefEntity).setColumnValueGeneric(eci, this);
+        } else {
+            oldRefEntity = (T) setColumnValueGeneric(entityColumnInfo, newRefEntity);
 
-            if (oldRefEntity2 != null && removeOldEntity) {
+            /*
+             * If the EntityColumnInfo stores a type that extends AbstractEntity then the
+             * columnName will ignore by hashCode() and equals(...). So, we are able to
+             * override the old value (AbstractEntity) by the key (EntityColumnInfo) without
+             * knowing the contingent columName.
+             */
+            final EntityColumnInfo<?> eci = new EntityToOneColumnInfo<>(this.getClass());
 
-                final EntityColumnInfo<?> eci2 = new EntityToOneColumnInfo<>(newRefEntity.getClass());
-                oldRefEntity2.setColumnValueGeneric(eci2, null);
+            if (oldRefEntity != null && removeOldEntity)
+                ((AbstractEntity<?>) oldRefEntity).setColumnValueGeneric(eci, null);
+
+            if (newRefEntity != null) {
+                final AbstractEntity<?> oldRefEntity2 =
+                        (AbstractEntity<?>) ((AbstractEntity<?>) newRefEntity).setColumnValueGeneric(eci, this);
+
+                if (oldRefEntity2 != null && removeOldEntity) {
+
+                    final EntityColumnInfo<?> eci2 = new EntityToOneColumnInfo<>(newRefEntity.getClass());
+                    oldRefEntity2.setColumnValueGeneric(eci2, null);
+                }
             }
         }
 
@@ -224,6 +269,11 @@ public abstract class AbstractEntity<PK> {
     @SuppressWarnings("unchecked")
     private Object setColumnValueGeneric(final EntityColumnInfo<?> entityColumnInfo, final Object entityColumnValue) {
 
+        return entityColumns.put((EntityColumnInfo<Object>) entityColumnInfo, entityColumnValue);
+    }
+
+    private void checkThatColumnExists(final EntityColumnInfo<?> entityColumnInfo) {
+
         if (!this.entityColumns.containsKey(entityColumnInfo)) {
 
             final CharSequence columnName =
@@ -237,10 +287,7 @@ public abstract class AbstractEntity<PK> {
                             entityColumnInfo.getColumnType().getSimpleName() +
                             columnName +
                             ". May you forgot to add the information?");
-
         }
-
-        return entityColumns.put((EntityColumnInfo<Object>) entityColumnInfo, entityColumnValue);
     }
 
     public IBoundedColumnMap<Object> getAllColumns() {

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
 
+import de.lehmann.lehmannorm.entity.structure.EntityToManyColumnInfo;
 import de.lehmann.lehmannorm.entity.structure.EntityToOneColumnInfo;
 
 /**
@@ -22,6 +23,7 @@ public class EntityUnitTest {
     private TestEntityA unitToTestA2;
     private TestEntityB unitToTestB1;
     private TestEntityB unitToTestB2;
+    private TestEntityC unitToTestC1;
 
     @BeforeEach
     public void init() {
@@ -30,6 +32,12 @@ public class EntityUnitTest {
         unitToTestA2 = new TestEntityA();
         unitToTestB1 = new TestEntityB();
         unitToTestB2 = new TestEntityB();
+        unitToTestC1 = new TestEntityC();
+    }
+
+    @Test
+    public void constructorCall() {
+
     }
 
     @Test
@@ -50,7 +58,7 @@ public class EntityUnitTest {
     };
 
     @Test
-    public void setReferenceEntity() {
+    public void setToOneReferenceEntity() {
 
         // # A1 and B1
         assertNull(unitToTestB1.getColumnValue(TestEntityB.REF_ID));
@@ -82,6 +90,15 @@ public class EntityUnitTest {
 
         // ## A2 doesn't have a binding anymore
         assertNull(unitToTestA2.getColumnValue(TestEntityA.REF_ID));
+
+    }
+
+    @Test
+    public void setToManyReferenceEntity() {
+
+        unitToTestC1.setPrimaryKeyValue(0);
+        unitToTestC1.setColumnValue(TestEntityC.REF_ID_A, unitToTestA1);
+        unitToTestC1.setColumnValue(TestEntityC.REF_ID_B, unitToTestB1);
 
     }
 
@@ -124,6 +141,27 @@ public class EntityUnitTest {
 
         protected TestEntityB() {
             super(ID, REF_ID);
+        }
+
+        @Override
+        public String getTableName() {
+            return null;
+        }
+    }
+
+    private static class TestEntityC extends AbstractEntity<Integer> {
+
+        public static final EntityToOneColumnInfo<Integer>      ID              =
+                new EntityToOneColumnInfo<>("ID", Integer.class);
+        public static final EntityToManyColumnInfo<TestEntityA> REF_ID_A        =
+                new EntityToManyColumnInfo<>("REF_ID_A", TestEntityA.class);
+        public static final EntityToOneColumnInfo<TestEntityB>  REF_ID_B        =
+                new EntityToManyColumnInfo<>("REF_ID_B", TestEntityB.class);
+        public static final EntityToOneColumnInfo<Double>       FLOATING_NUMBER =
+                new EntityToOneColumnInfo<>("FLOATING_NUMBER", Double.class);
+
+        protected TestEntityC() {
+            super(ID, REF_ID_A, REF_ID_B, FLOATING_NUMBER);
         }
 
         @Override
