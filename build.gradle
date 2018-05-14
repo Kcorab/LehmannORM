@@ -3,7 +3,7 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.1'
+		classpath 'org.junit.platform:junit-platform-gradle-plugin:1.1.1'
 	}
 }
 
@@ -21,16 +21,16 @@ configurations {
 
 dependencies {
 
-	ideModules("org.junit.platform:junit-platform-console-standalone:1.0.3")
+	ideModules("org.junit.platform:junit-platform-console-standalone:1.1.1")
             
     compile("mysql:mysql-connector-java:6.0.6")
     compile("org.openjdk.jmh:jmh-core:1.19")
-	compile("org.junit.platform:junit-platform-commons:1.0.3")
+	compile("org.junit.platform:junit-platform-commons:1.1.1")
+	testCompile("org.junit.platform:junit-platform-runner:1.1.1")
     
-    testCompile("org.junit.jupiter:junit-jupiter-params:5.0.3")
-    testCompile("org.junit.jupiter:junit-jupiter-api:5.0.3")
-	testRuntime("org.junit.jupiter:junit-jupiter-engine:5.0.3")
-	
+    testCompile("org.junit.jupiter:junit-jupiter-params:5.1.1")
+    testCompile("org.junit.jupiter:junit-jupiter-api:5.1.1")
+	testRuntime("org.junit.jupiter:junit-jupiter-engine:5.1.1")
 }
 
 task copyIdeModules(type: Copy) {
