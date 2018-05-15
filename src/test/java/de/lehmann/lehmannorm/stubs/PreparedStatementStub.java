@@ -366,8 +366,9 @@ public class PreparedStatementStub implements PreparedStatement {
     }
 
     @Override
+    @Deprecated
     public void setUnicodeStream(final int parameterIndex, final InputStream x, final int length) throws SQLException {
-
+        throw new UnsupportedOperationException("Method is deprecated.");
     }
 
     @Override

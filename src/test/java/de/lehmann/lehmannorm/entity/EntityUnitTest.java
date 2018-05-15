@@ -1,8 +1,11 @@
 package de.lehmann.lehmannorm.entity;
 
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +41,27 @@ public class EntityUnitTest {
     @Test
     public void constructorCall() {
 
+        unitToTestC1.setPrimaryKeyValue(0);
+        unitToTestC1.addRefA(unitToTestA1);
+        unitToTestC1.addRefA(unitToTestA2);
+        unitToTestC1.setRefB(unitToTestB1);
+        unitToTestC1.setFloatingNumber(-1d);
+
+        assertEquals(0, unitToTestC1.getPrimaryKeyValue().intValue());
+        assertEquals(unitToTestA1, unitToTestC1.getRefA().get(0));
+        assertEquals(unitToTestA2, unitToTestC1.getRefA().get(1));
+        assertEquals(unitToTestB1, unitToTestC1.getRefB());
+        assertEquals(-1d, unitToTestC1.getFloatingNumber().doubleValue());
+
+        // copy constructor
+
+        final TestEntityC copyEntity = new TestEntityC(unitToTestC1);
+
+        assertEquals(TestEntityC.ID, copyEntity.getAllColumns().getKeyByIndex(0));
+        assertEquals(TestEntityC.REF_ID_A, copyEntity.getAllColumns().getKeyByIndex(1));
+        assertEquals(TestEntityC.REF_ID_B, copyEntity.getAllColumns().getKeyByIndex(2));
+        assertEquals(TestEntityC.FLOATING_NUMBER, copyEntity.getAllColumns().getKeyByIndex(3));
+        assertNotEquals(unitToTestC1.getRefA(), copyEntity.getRefA());
     }
 
     @Test
@@ -156,12 +180,47 @@ public class EntityUnitTest {
         public static final EntityToManyColumnInfo<TestEntityA> REF_ID_A        =
                 new EntityToManyColumnInfo<>("REF_ID_A", TestEntityA.class);
         public static final EntityToOneColumnInfo<TestEntityB>  REF_ID_B        =
-                new EntityToManyColumnInfo<>("REF_ID_B", TestEntityB.class);
+                new EntityToOneColumnInfo<>("REF_ID_B", TestEntityB.class);
         public static final EntityToOneColumnInfo<Double>       FLOATING_NUMBER =
                 new EntityToOneColumnInfo<>("FLOATING_NUMBER", Double.class);
 
         protected TestEntityC() {
             super(ID, REF_ID_A, REF_ID_B, FLOATING_NUMBER);
+        }
+
+        public TestEntityC(final AbstractEntity<Integer> sourceEntity) {
+            super(sourceEntity);
+        }
+
+        @SuppressWarnings("unchecked")
+        public List<TestEntityA> getRefA() {
+
+            return (List<TestEntityA>) getAllColumns().getValueByIndex(1);
+        }
+
+        public void addRefA(final TestEntityA refA) {
+
+            getRefA().add(refA);
+        }
+
+        public TestEntityB getRefB() {
+
+            return (TestEntityB) getAllColumns().getValueByIndex(2);
+        }
+
+        public void setRefB(final TestEntityB refB) {
+
+            setColumnValue(REF_ID_B, refB);
+        }
+
+        public Double getFloatingNumber() {
+
+            return (Double) getAllColumns().getValueByIndex(3);
+        }
+
+        public void setFloatingNumber(final Double floatingNumber) {
+
+            setColumnValue(FLOATING_NUMBER, floatingNumber);
         }
 
         @Override
