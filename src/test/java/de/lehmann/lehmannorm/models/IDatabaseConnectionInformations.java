@@ -3,16 +3,16 @@ package de.lehmann.lehmannorm.models;
 /**
  * @author Tim Lehmann
  */
-public interface IDatabaseConnectionInformations {
+public interface IDatabaseConnectionInformations
+{
+  public String getDatabaseUrl();
 
-    public String getDatabaseUrl();
+  public String getDatabaseName();
 
-    public String getDatabaseName();
+  public String getDatabaseUserName();
 
-    public String getDatabaseUserName();
+  public String getDatabasePassword();
 
-    public String getDatabasePassword();
-
-    static final IDatabaseConnectionInformations MARIA_DB = new DatabaseConnectionInformations(
-            "jdbc:mysql://127.0.0.1:3306", "SYSTEM_TEST", "system_test", "1");
+  static final IDatabaseConnectionInformations MARIA_DB = new DatabaseConnectionInformations(
+      "jdbc:mysql://127.0.0.1:3306", "SYSTEM_TEST", "system_test", "1");
 }

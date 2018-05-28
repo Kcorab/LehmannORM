@@ -12,35 +12,37 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Tim Lehmann
  */
-public class EntityColumnUnitTest {
+public class EntityColumnUnitTest
+{
+  public Map<EntityToOneColumnInfo<?>, String> map = new LinkedHashMap<>();
 
-    public Map<EntityToOneColumnInfo<?>, String> map = new LinkedHashMap<>();
+  @BeforeEach
+  public void beforeTestMap()
+  {
+    map.clear();
+  }
 
-    @BeforeEach
-    public void beforeTestMap() {
+  @Test
+  public void testEquals()
+  {
+    assertEquals(new EntityToOneColumnInfo<>("COLUMN", Integer.class),
+        new EntityToOneColumnInfo<>("COLUMN", Integer.class));
+    assertNotEquals(new EntityToOneColumnInfo<>("COLUMN", Integer.class),
+        new EntityToOneColumnInfo<>("COLUMN", Long.class));
+  }
 
-        map.clear();
-    }
+  @Test
+  public void testMap()
+  {
+    final String excpectedValue = "assignedValue";
+    map.put(new EntityToOneColumnInfo<>("COLUMN", String.class), excpectedValue);
 
-    @Test
-    public void testEquals() {
+    String actualValue;
 
-        assertEquals(new EntityToOneColumnInfo<>("COLUMN", Integer.class), new EntityToOneColumnInfo<>("COLUMN", Integer.class));
-        assertNotEquals(new EntityToOneColumnInfo<>("COLUMN", Integer.class), new EntityToOneColumnInfo<>("COLUMN", Long.class));
-    }
+    actualValue = map.get(new EntityToOneColumnInfo<>("COLUMN", String.class));
+    assertEquals(excpectedValue, actualValue);
 
-    @Test
-    public void testMap() {
-
-        final String excpectedValue = "assignedValue";
-        map.put(new EntityToOneColumnInfo<>("COLUMN", String.class), excpectedValue);
-
-        String actualValue;
-
-        actualValue = map.get(new EntityToOneColumnInfo<>("COLUMN", String.class));
-        assertEquals(excpectedValue, actualValue);
-
-        actualValue = map.get(new EntityToOneColumnInfo<>("COLUMN", Integer.class));
-        assertNotEquals(excpectedValue, actualValue);
-    }
+    actualValue = map.get(new EntityToOneColumnInfo<>("COLUMN", Integer.class));
+    assertNotEquals(excpectedValue, actualValue);
+  }
 }

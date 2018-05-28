@@ -12,35 +12,32 @@ import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
 /**
  * @author Tim Lehmann
  */
-public class SelectStatementBuilder implements IStatementBuilder {
+public class SelectStatementBuilder implements IStatementBuilder
+{
+  @Override
+  public PreparedStatement buildStatement(final String tableName, final Set<EntityColumnInfo<Object>> entityColumnInfos,
+      final Connection connection) throws SQLException
+  {
+    final String columnNames = processEntityColumns(entityColumnInfos);
+    final String primaryKeyName = generateStatementTail(entityColumnInfos);
 
-    @Override
-    public PreparedStatement buildStatement(final String tableName,
-            final Set<EntityColumnInfo<Object>> entityColumnInfos,
-            final Connection connection) throws SQLException {
+    return buildStatement(tableName, columnNames, primaryKeyName, connection);
+  }
 
-        final String columnNames = processEntityColumns(entityColumnInfos);
-        final String primaryKeyName = generateStatementTail(entityColumnInfos);
+  @Override
+  public PreparedStatement buildStatement(final String tableName, final String columnsSeperatedByComma,
+      final String tail, final Connection connection) throws SQLException
+  {
+    final StringBuilder selectQueryBuilder;
+    selectQueryBuilder = new StringBuilder("SELECT ").append(columnsSeperatedByComma).append(" FROM ").append(tableName)
+        .append(" WHERE ").append(tail).append("=?;");
 
-        return buildStatement(tableName, columnNames, primaryKeyName, connection);
-    }
+    return connection.prepareStatement(selectQueryBuilder.toString());
+  }
 
-    @Override
-    public PreparedStatement buildStatement(final String tableName, final String columnsSeperatedByComma,
-            final String tail,
-            final Connection connection) throws SQLException {
-
-        final StringBuilder selectQueryBuilder;
-        selectQueryBuilder =
-                new StringBuilder("SELECT ").append(columnsSeperatedByComma).append(" FROM ").append(tableName)
-                        .append(" WHERE ").append(tail).append("=?;");
-
-        return connection.prepareStatement(selectQueryBuilder.toString());
-    }
-
-    @Override
-    public String generateStatementTail(final Set<EntityColumnInfo<Object>> entityColumnInfos) {
-
-        return entityColumnInfos.iterator().next().getColumnName();
-    }
+  @Override
+  public String generateStatementTail(final Set<EntityColumnInfo<Object>> entityColumnInfos)
+  {
+    return entityColumnInfos.iterator().next().getColumnName();
+  }
 }

@@ -8,14 +8,17 @@ import de.lehmann.lehmannorm.entity.AbstractEntity;
  * @author Tim Lehmann
  *
  * @param <ECVT>
+ *          type of entity column value
  */
-public class EntityToManyColumnInfo<ECVT extends AbstractEntity<?>> extends EntityToOneColumnInfo<ECVT> {
+public class EntityToManyColumnInfo<ECVT extends AbstractEntity<?>> extends EntityToOneColumnInfo<ECVT>
+{
+  public EntityToManyColumnInfo(final Class<ECVT> columnType)
+  {
+    super(columnType);
+  }
 
-    public EntityToManyColumnInfo(final Class<ECVT> columnType) {
-        super(columnType);
-    }
-
-    public EntityToManyColumnInfo(final String columnName, final Class<ECVT> columnType) {
-        super(columnName, columnType);
-    }
+  public EntityToManyColumnInfo(final String columnName, final Class<ECVT> columnType)
+  {
+    super(columnName, columnType);
+  }
 }

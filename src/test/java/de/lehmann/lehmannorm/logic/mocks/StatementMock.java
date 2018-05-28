@@ -12,27 +12,28 @@ import de.lehmann.lehmannorm.stubs.PreparedStatementStub;
  *
  * @author Tim Lehmann
  */
-public class StatementMock extends PreparedStatementStub {
+public class StatementMock extends PreparedStatementStub
+{
+  private final List<Object>     columnValues = new ArrayList<>(5);
+  private final Consumer<Object> callback;
 
-    private final List<Object>     columnValues = new ArrayList<>(5);
-    private final Consumer<Object> callback;
+  public StatementMock(final Consumer<Object> callback)
+  {
+    super();
+    this.callback = callback;
+  }
 
-    public StatementMock(final Consumer<Object> callback) {
-        super();
-        this.callback = callback;
-    }
+  @Override
+  public void setObject(final int parameterIndex, final Object x) throws SQLException
+  {
+    columnValues.add(x);
+  }
 
-    @Override
-    public void setObject(final int parameterIndex, final Object x) throws SQLException {
+  @Override
+  public boolean execute() throws SQLException
+  {
+    callback.accept(columnValues.get(0));
 
-        columnValues.add(x);
-    }
-
-    @Override
-    public boolean execute() throws SQLException {
-
-        callback.accept(columnValues.get(0));
-
-        return true;
-    }
+    return true;
+  }
 }

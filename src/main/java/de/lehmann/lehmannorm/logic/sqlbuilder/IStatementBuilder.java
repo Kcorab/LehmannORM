@@ -11,61 +11,60 @@ import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
 /**
  * @author Tim Lehmann
  */
-public interface IStatementBuilder {
+public interface IStatementBuilder
+{
+  PreparedStatement buildStatement(final String tableName, final Set<EntityColumnInfo<Object>> entityColumnInfos,
+      final Connection connection) throws SQLException;
 
-    PreparedStatement buildStatement(final String tableName, final Set<EntityColumnInfo<Object>> entityColumnInfos,
-            final Connection connection)
-            throws SQLException;
+  PreparedStatement buildStatement(final String tableName, final String columnsSeperatedByComma, final String tail,
+      final Connection connection) throws SQLException;
 
-    PreparedStatement buildStatement(final String tableName, final String columnsSeperatedByComma, final String tail,
-            final Connection connection)
-            throws SQLException;
+  String generateStatementTail(final Set<EntityColumnInfo<Object>> entityColumnInfos);
 
-    String generateStatementTail(final Set<EntityColumnInfo<Object>> entityColumnInfos);
+  /**
+   * @param entityColumnInfos
+   * @return column names separated by ',' in brackets
+   */
+  static String processEntityColumns(final Set<EntityColumnInfo<Object>> entityColumnInfos)
+  {
+    final StringBuilder columnsBuilder;
+    final Iterator<EntityColumnInfo<Object>> it = entityColumnInfos.iterator();
 
-    /**
-     * @param entityColumnInfos
-     * @return column names seperated by ',' in brackets
-     */
-    static String processEntityColumns(final Set<EntityColumnInfo<Object>> entityColumnInfos) {
+    // Put all column names in a string.
 
-        final StringBuilder columnsBuilder;
-        final Iterator<EntityColumnInfo<Object>> it = entityColumnInfos.iterator();
+    columnsBuilder = new StringBuilder(it.next().getColumnName());
 
-        // Put all column names in a string.
+    while (it.hasNext())
+    {
 
-        columnsBuilder = new StringBuilder(it.next().getColumnName());
+      final EntityColumnInfo<?> entityColumnInfo = it.next();
 
-        while (it.hasNext()) {
-
-            final EntityColumnInfo<?> entityColumnInfo = it.next();
-
-            if (entityColumnInfo.getColumnName() != null)
-                columnsBuilder.append(",").append(entityColumnInfo.getColumnName());
-
-            /*
-             * If columnName is null the entity references to another entity in object model
-             * but in relation model the other entity holds the foreign key for this entity.
-             */
-        }
-
-        return columnsBuilder.toString();
+      if (entityColumnInfo.getColumnName() != null)
+        columnsBuilder.append(",").append(entityColumnInfo.getColumnName());
+      /*
+       * If columnName is null the entity references to another entity in object model
+       * but in relation model the other entity holds the foreign key for this entity.
+       */
     }
 
-    public enum DefaultBuilderBundle {
+    return columnsBuilder.toString();
+  }
 
-        DEFAULT_INSERT_STATEMENT_BUILDER(new InsertStatementBuilder()),
+  public enum DefaultBuilderBundle
+  {
+    DEFAULT_INSERT_STATEMENT_BUILDER(new InsertStatementBuilder()),
+    DEFAULT_SELECT_STATEMENT_BUILDER(new SelectStatementBuilder());
 
-        DEFAULT_SELECT_STATEMENT_BUILDER(new SelectStatementBuilder());
+    private final IStatementBuilder param;
 
-        private final IStatementBuilder param;
-
-        private DefaultBuilderBundle(final IStatementBuilder param) {
-            this.param = param;
-        }
-
-        public IStatementBuilder getStatementBuilder() {
-            return param;
-        }
+    private DefaultBuilderBundle(final IStatementBuilder param)
+    {
+      this.param = param;
     }
+
+    public IStatementBuilder getStatementBuilder()
+    {
+      return param;
+    }
+  }
 }

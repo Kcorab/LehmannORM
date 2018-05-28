@@ -1,8 +1,14 @@
 package de.lehmann.lehmannorm.entity.structure;
 
-public interface EntityColumnInfo<ECVT> {
+/**
+ * @author barock
+ *
+ * @param <ECVT>
+ *          type of entity column value
+ */
+public interface EntityColumnInfo<ECVT>
+{
+  String getColumnName();
 
-    String getColumnName();
-
-    Class<ECVT> getColumnType();
+  Class<ECVT> getColumnType();
 }

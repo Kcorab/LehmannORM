@@ -12,35 +12,37 @@ import de.lehmann.lehmannorm.models.IDatabaseConnectionInformations;
 /**
  * @author Tim Lehmann
  */
-public abstract class ADatabaseConnectionSystemTest extends AConnectionTest {
+public abstract class ADatabaseConnectionSystemTest extends AConnectionTest
+{
+  private static final IDatabaseConnectionInformations CONNECTION_ACCESS_INFO =
+      IDatabaseConnectionInformations.MARIA_DB;
 
-    private static final IDatabaseConnectionInformations CONNECTION_ACCESS_INFO =
-            IDatabaseConnectionInformations.MARIA_DB;
+  @Override
+  protected Connection createConnection()
+  {
+    final String connectionString =
+        CONNECTION_ACCESS_INFO.getDatabaseUrl() + "/" + CONNECTION_ACCESS_INFO.getDatabaseName() + "?" +
+            "user=" + CONNECTION_ACCESS_INFO.getDatabaseUserName() + "&" +
+            "password=" + CONNECTION_ACCESS_INFO.getDatabasePassword();
 
-    @Override
-    protected Connection createConnection() {
+    Connection connection = null;
 
-        final String connectionString =
-                CONNECTION_ACCESS_INFO.getDatabaseUrl() + "/" + CONNECTION_ACCESS_INFO.getDatabaseName() + "?" +
-                        "user=" + CONNECTION_ACCESS_INFO.getDatabaseUserName() + "&" +
-                        "password=" + CONNECTION_ACCESS_INFO.getDatabasePassword();
-
-        Connection connection = null;
-
-        try {
-            connection = DriverManager.getConnection(connectionString);
-        } catch (final SQLException e) {
-            Assertions.fail(e);
-        }
-
-        return connection;
+    try
+    {
+      connection = DriverManager.getConnection(connectionString);
+    }
+    catch (final SQLException e)
+    {
+      Assertions.fail(e);
     }
 
-    @Override
-    @BeforeEach
-    public void doCreateConnection() throws InstantiationException, IllegalAccessException, SQLException {
+    return connection;
+  }
 
-        if (connection == null)
-            super.doCreateConnection();
-    }
+  @Override
+  @BeforeEach
+  public void doCreateConnection() throws InstantiationException, IllegalAccessException, SQLException
+  {
+    if (connection == null) super.doCreateConnection();
+  }
 }
