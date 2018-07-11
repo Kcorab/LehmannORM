@@ -9,8 +9,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.commons.logging.Logger;
-import org.junit.platform.commons.logging.LoggerFactory;
 
 import de.lehmann.lehmannorm.entity.structure.EntityToManyColumnInfo;
 import de.lehmann.lehmannorm.entity.structure.EntityToOneColumnInfo;
@@ -20,7 +18,8 @@ import de.lehmann.lehmannorm.entity.structure.EntityToOneColumnInfo;
  */
 public class EntityUnitTest
 {
-  private static final Logger LOGGER = LoggerFactory.getLogger(EntityUnitTest.class);
+  // private static final Logger LOGGER =
+  // LoggerFactory.getLogger(EntityUnitTest.class);
 
   private TestEntityA unitToTestA1;
   private TestEntityA unitToTestA2;

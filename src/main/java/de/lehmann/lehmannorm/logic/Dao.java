@@ -102,6 +102,15 @@ public class Dao<E extends AbstractEntity<PK>, PK>
   private final PreparedStatement insertStatement;
   private final PreparedStatement selectStatement;
 
+  /*
+   * TODO
+   * Remove this when selectStatement is used.
+   */
+  public PreparedStatement getSelectStatement()
+  {
+    return selectStatement;
+  }
+
   private Dao(final Connection connection, final E entity) throws SQLException
   {
     this.connection = connection;
@@ -267,6 +276,7 @@ public class Dao<E extends AbstractEntity<PK>, PK>
     this.insertStatement.execute();
   }
 
+  @SuppressWarnings("unchecked")
   private void insertOneToOne(
       final E entity,
       final AbstractEntity<?> triggerdEntity,
@@ -300,8 +310,12 @@ public class Dao<E extends AbstractEntity<PK>, PK>
       recStack.push(refEntity);
   }
 
-  private void insertManyToOne()
-  {}
+  /*
+   * TODO
+   * Uncomment this when it is used.
+   */
+  // private void insertManyToOne()
+  // {}
 
   private void insertOneToMany()
   {}

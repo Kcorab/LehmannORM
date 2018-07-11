@@ -7,6 +7,8 @@ import java.sql.SQLException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
 
@@ -14,12 +16,12 @@ import de.lehmann.lehmannorm.AConnectionTest;
 import de.lehmann.lehmannorm.entity.structure.EntityColumnInfo;
 import de.lehmann.lehmannorm.entity.structure.EntityToOneColumnInfo;
 import de.lehmann.lehmannorm.logic.mocks.ConnectionMock;
-import de.lehmann.lehmannorm.logic.mocks.EntityTestClassCollection.TestEntityA_1A;
-import de.lehmann.lehmannorm.logic.mocks.EntityTestClassCollection.TestEntityA_1B;
-import de.lehmann.lehmannorm.logic.mocks.EntityTestClassCollection.TestEntityB_1A;
-import de.lehmann.lehmannorm.logic.mocks.EntityTestClassCollection.TestEntityB_1B;
-import de.lehmann.lehmannorm.logic.mocks.EntityTestClassCollection.TestEntityC_1A;
-import de.lehmann.lehmannorm.logic.mocks.EntityTestClassCollection.TestEntityC_1B;
+import de.lehmann.lehmannorm.logic.mocks.EntityTestClassCollection.TestEntity_1_A;
+import de.lehmann.lehmannorm.logic.mocks.EntityTestClassCollection.TestEntity_1_B;
+import de.lehmann.lehmannorm.logic.mocks.EntityTestClassCollection.TestEntity_1_C;
+import de.lehmann.lehmannorm.logic.mocks.EntityTestClassCollection.TestEntity_2_A;
+import de.lehmann.lehmannorm.logic.mocks.EntityTestClassCollection.TestEntity_2_B;
+import de.lehmann.lehmannorm.logic.mocks.EntityTestClassCollection.TestEntity_2_C;
 import de.lehmann.lehmannorm.stubs.ConnectionStub;
 
 /**
@@ -36,7 +38,7 @@ public class DaoUnitTest extends AConnectionTest
   {
     Connection connection;
 
-    final EntityColumnInfo<Integer> id = TestEntityA_1A.ID;
+    final EntityColumnInfo<Integer> id = TestEntity_1_A.ID;
 
     final EntityColumnInfo<?> idUnkown = id;
 
@@ -48,55 +50,78 @@ public class DaoUnitTest extends AConnectionTest
     LOGGER.debug(columnType::getName);
 
     connection = new ConnectionStub();
-    final TestEntityA_1A testEntityA = new TestEntityA_1A();
+    final TestEntity_1_A testEntityA = new TestEntity_1_A();
 
     Assertions.assertEquals(
         Dao.getOrCreateCachedDao(connection, testEntityA.getClass()),
         Dao.getOrCreateCachedDao(connection, testEntityA.getClass()));
 
     connection = new ConnectionStub();
-    final TestEntityB_1A testEntityB = new TestEntityB_1A();
+    final TestEntity_1_B testEntityB = new TestEntity_1_B();
 
     Assertions.assertEquals(
         Dao.getOrCreateCachedDao(connection, testEntityB.getClass()),
         Dao.getOrCreateCachedDao(connection, testEntityB.getClass()));
   }
 
-  /*
-   * CASE 1A
-   *
-   * A(aId, refB) [B have to exist]
-   * B(bId, refC) [C have to exist]
-   * C(cId)
-   *
-   * insert order: C, B, A
-   */
-  @Test
-  public void insert1A() throws InstantiationException, IllegalAccessException, SQLException
-  {
-    final Dao<TestEntityA_1A, Integer> unitToTest =
-        Dao.getOrCreateCachedDao(connection, TestEntityA_1A.class);
+  // # CONSTELLATION 1
 
-    final TestEntityC_1A entityC = new TestEntityC_1A();
+  public static Object[][] dataproviderConstellation1()
+  {
+    final Object[][] data = new Object[1][];
+
+    TestEntity_1_A entityA;
+    TestEntity_1_B entityB;
+    TestEntity_1_C entityC;
+
+    /*
+     * A(aId, refB) [B have to exist]
+     * B(bId, refC) [C have to exist]
+     * C(cId)
+     *
+     * insert order: C, B, A
+     */
+    entityC = new TestEntity_1_C();
     entityC.setPrimaryKeyValue(2);
 
-    final TestEntityB_1A entityB = new TestEntityB_1A();
+    entityB = new TestEntity_1_B();
     entityB.setPrimaryKeyValue(1);
-    entityB.setColumnValue(TestEntityB_1A.ID_C, entityC);
+    entityB.setColumnValue(TestEntity_1_B.ID_C, entityC);
 
-    final TestEntityA_1A entityA = new TestEntityA_1A();
+    entityA = new TestEntity_1_A();
     entityA.setPrimaryKeyValue(0);
-    entityA.setColumnValue(TestEntityA_1A.ID_B, entityB);
+    entityA.setColumnValue(TestEntity_1_A.ID_B, entityB);
+
+    data[0] = new Object[] { entityA, 2 + "," + 1 + "," + 0 };
+
+    /*
+     * A(aId, refB) [B have to exist]
+     * B(bId, refC) [C have to exist]
+     * C(cId)
+     *
+     * insert order: C, B, A
+     */
+
+    return data;
+  }
+
+  @MethodSource(value = "dataproviderConstellation1")
+  @ParameterizedTest
+  public void insert1A(final TestEntity_1_A entityA, final String expectedInsertOrder)
+      throws InstantiationException, IllegalAccessException, SQLException
+  {
+    final Dao<TestEntity_1_A, Integer> unitToTest =
+        Dao.getOrCreateCachedDao(connection, TestEntity_1_A.class);
 
     unitToTest.insert(entityA);
 
-    final String expected = 2 + "," + 1 + "," + 0;
-
-    assertEquals(expected, connection.toString());
+    assertEquals(expectedInsertOrder, connection.toString());
   }
 
+  // # CONSTELLATION 2
+
   /*
-   * CASE 1B
+   * CASE 2
    *
    * A(aId, refB, refC) [B and C have to exist]
    * B(bId)
@@ -105,21 +130,21 @@ public class DaoUnitTest extends AConnectionTest
    * insert order: B, C, A
    */
   @Test
-  public void insert1B() throws InstantiationException, IllegalAccessException, SQLException
+  public void insert2A() throws InstantiationException, IllegalAccessException, SQLException
   {
-    final Dao<TestEntityA_1B, Integer> unitToTest =
-        Dao.getOrCreateCachedDao(connection, TestEntityA_1B.class);
+    final Dao<TestEntity_2_A, Integer> unitToTest =
+        Dao.getOrCreateCachedDao(connection, TestEntity_2_A.class);
 
-    final TestEntityC_1B entityC = new TestEntityC_1B();
+    final TestEntity_2_C entityC = new TestEntity_2_C();
     entityC.setPrimaryKeyValue(2);
 
-    final TestEntityB_1B entityB = new TestEntityB_1B();
+    final TestEntity_2_B entityB = new TestEntity_2_B();
     entityB.setPrimaryKeyValue(1);
 
-    final TestEntityA_1B entityA = new TestEntityA_1B();
+    final TestEntity_2_A entityA = new TestEntity_2_A();
     entityA.setPrimaryKeyValue(0);
-    entityA.setColumnValue(TestEntityA_1B.ID_B, entityB);
-    entityA.setColumnValue(TestEntityA_1B.ID_C, entityC);
+    entityA.setColumnValue(TestEntity_2_A.ID_B, entityB);
+    entityA.setColumnValue(TestEntity_2_A.ID_C, entityC);
 
     unitToTest.insert(entityA);
 

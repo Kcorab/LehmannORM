@@ -13,20 +13,20 @@ import de.lehmann.lehmannorm.entity.structure.EntityToOneColumnInfo;
 public class EntityTestClassCollection
 {
   /*
-   * # CASE 1A
+   * # CONSTELLATION 1
    *
    * A(aId, refB) [B have to exist]
    * B(bId, refC) [C have to exist]
    * C(cId)
    */
 
-  public static class TestEntityA_1A extends AbstractEntity<Integer>
+  public static class TestEntity_1_A extends AbstractEntity<Integer>
   {
     public final static EntityColumnInfo<Integer>        ID   = new EntityToOneColumnInfo<>("ID", Integer.class);
-    public final static EntityColumnInfo<TestEntityB_1A> ID_B =
-        new EntityToOneColumnInfo<>("ID_B", TestEntityB_1A.class);
+    public final static EntityColumnInfo<TestEntity_1_B> ID_B =
+        new EntityToOneColumnInfo<>("ID_B", TestEntity_1_B.class);
 
-    public TestEntityA_1A()
+    public TestEntity_1_A()
     {
       super(ID, ID_B);
     }
@@ -38,14 +38,14 @@ public class EntityTestClassCollection
     }
   }
 
-  public static class TestEntityB_1A extends AbstractEntity<Integer>
+  public static class TestEntity_1_B extends AbstractEntity<Integer>
   {
     public final static EntityColumnInfo<Integer>        ID    = new EntityToOneColumnInfo<>("ID", Integer.class);
-    public final static EntityColumnInfo<TestEntityA_1A> REF_A = new EntityToOneColumnInfo<>(TestEntityA_1A.class);
-    public final static EntityColumnInfo<TestEntityC_1A> ID_C  =
-        new EntityToOneColumnInfo<>("ID_C", TestEntityC_1A.class);
+    public final static EntityColumnInfo<TestEntity_1_A> REF_A = new EntityToOneColumnInfo<>(TestEntity_1_A.class);
+    public final static EntityColumnInfo<TestEntity_1_C> ID_C  =
+        new EntityToOneColumnInfo<>("ID_C", TestEntity_1_C.class);
 
-    public TestEntityB_1A()
+    public TestEntity_1_B()
     {
       super(ID, REF_A, ID_C);
     }
@@ -57,12 +57,12 @@ public class EntityTestClassCollection
     }
   }
 
-  public static class TestEntityC_1A extends AbstractEntity<Integer>
+  public static class TestEntity_1_C extends AbstractEntity<Integer>
   {
     public final static EntityColumnInfo<Integer>        ID    = new EntityToOneColumnInfo<>("ID", Integer.class);
-    public final static EntityColumnInfo<TestEntityB_1A> REF_B = new EntityToOneColumnInfo<>(TestEntityB_1A.class);
+    public final static EntityColumnInfo<TestEntity_1_B> REF_B = new EntityToOneColumnInfo<>(TestEntity_1_B.class);
 
-    public TestEntityC_1A()
+    public TestEntity_1_C()
     {
       super(ID, REF_B);
     }
@@ -75,22 +75,22 @@ public class EntityTestClassCollection
   }
 
   /*
-   * # CASE 1B
+   * # CONSTELLATION 2
    *
    * A(aId, refB, refC) [B and C have to exist]
    * B(bId)
    * C(cId)
    */
 
-  public static class TestEntityA_1B extends AbstractEntity<Integer>
+  public static class TestEntity_2_A extends AbstractEntity<Integer>
   {
     public final static EntityColumnInfo<Integer>        ID   = new EntityToOneColumnInfo<>("ID", Integer.class);
-    public final static EntityColumnInfo<TestEntityB_1B> ID_B =
-        new EntityToOneColumnInfo<>("ID_B", TestEntityB_1B.class);
-    public final static EntityColumnInfo<TestEntityC_1B> ID_C =
-        new EntityToOneColumnInfo<>("ID_C", TestEntityC_1B.class);
+    public final static EntityColumnInfo<TestEntity_2_B> ID_B =
+        new EntityToOneColumnInfo<>("ID_B", TestEntity_2_B.class);
+    public final static EntityColumnInfo<TestEntity_2_C> ID_C =
+        new EntityToOneColumnInfo<>("ID_C", TestEntity_2_C.class);
 
-    public TestEntityA_1B()
+    public TestEntity_2_A()
     {
       super(ID, ID_B, ID_C);
     }
@@ -102,12 +102,12 @@ public class EntityTestClassCollection
     }
   }
 
-  public static class TestEntityB_1B extends AbstractEntity<Integer>
+  public static class TestEntity_2_B extends AbstractEntity<Integer>
   {
     public final static EntityColumnInfo<Integer>        ID    = new EntityToOneColumnInfo<>("ID", Integer.class);
-    public final static EntityColumnInfo<TestEntityA_1B> REF_A = new EntityToOneColumnInfo<>(TestEntityA_1B.class);
+    public final static EntityColumnInfo<TestEntity_2_A> REF_A = new EntityToOneColumnInfo<>(TestEntity_2_A.class);
 
-    public TestEntityB_1B()
+    public TestEntity_2_B()
     {
       super(ID, REF_A);
     }
@@ -119,12 +119,12 @@ public class EntityTestClassCollection
     }
   }
 
-  public static class TestEntityC_1B extends AbstractEntity<Integer>
+  public static class TestEntity_2_C extends AbstractEntity<Integer>
   {
     public final static EntityColumnInfo<Integer>        ID    = new EntityToOneColumnInfo<>("ID", Integer.class);
-    public final static EntityColumnInfo<TestEntityA_1B> REF_A = new EntityToOneColumnInfo<>(TestEntityA_1B.class);
+    public final static EntityColumnInfo<TestEntity_2_A> REF_A = new EntityToOneColumnInfo<>(TestEntity_2_A.class);
 
-    public TestEntityC_1B()
+    public TestEntity_2_C()
     {
       super(ID, REF_A);
     }
